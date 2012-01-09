@@ -5,7 +5,11 @@ class DrupdownParser extends MarkdownExtra_Parser {
    */
   function __construct() {
     $this->block_gamut['doEmbeds'] = 55;
+    $this->span_gamut['doEmbeds'] = 0;
+    $this->block_gamut['doCodeBlocks'] = 5;
     parent::__construct();
+    unset($this->block_gamut['doFencedCodeBlocks']);
+    unset($this->span_gamut['doImages']);
   }
 
 	function doEmbeds($text) {
@@ -191,7 +195,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 		$text = preg_replace_callback('/
 			  (								# Wrap whole match in $1
 				(?>
-				  ^[ ]*(<|>|\|)[ ]?			# ">" at the start of a line
+				  ^[ ]*(<|>|\|)[ ]		# ">" at the start of a line
 					.+\n					# rest of the first line
 				  (.+\n)*					# subsequent consecutive lines
 				  \n*						# blanks
@@ -210,7 +214,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 		$bq = $matches[1];
     $mod = $matches[2];
 		# trim one level of quoting - trim whitespace-only lines
-		$bq = preg_replace('/^[ ]*(<|>|\|)[ ]?|^[ ]+$/m', '', $bq);
+		$bq = preg_replace('/^[ ]*(<|>|\|)[ ]|^[ ]+$/m', '', $bq);
 		$bq = $this->runBlockGamut($bq);		# recurse
 
 		$bq = preg_replace('/^/m', "  ", $bq);
@@ -286,5 +290,34 @@ class DrupdownParser extends MarkdownExtra_Parser {
 		$text .= "</table>";
 		
 		return $this->hashBlock($text) . "\n";
+	}
+
+  /**
+   * Git style codeblocks.
+   */
+	function doCodeBlocks($text) {
+	#
+	#	Process Markdown `<pre><code>` blocks.
+	#
+		$text = preg_replace_callback('{
+				(?:```(.*?)\n)
+				(	            # $1 = the code block -- one or more lines, starting with a space/tab
+				  (?>
+					.*\n+
+				  )+?
+				)
+        (?:```\n)
+			}xm',
+			array(&$this, '_doCodeBlocks_callback'), $text);
+
+		return $text;
+	}
+	function _doCodeBlocks_callback($matches) {
+		$codeblock = $matches[2];
+
+		$codeblock = htmlspecialchars($codeblock, ENT_NOQUOTES);
+
+		$codeblock = "<pre><code data-language=\"{$matches[1]}\">$codeblock\n</code></pre>";
+		return "\n\n".$this->hashBlock($codeblock)."\n\n";
 	}
 }
