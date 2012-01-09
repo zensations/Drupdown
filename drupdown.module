@@ -1,0 +1,147 @@
+<?php
+function drupdown_menu() {
+  return array(
+    'drupdown/playground' => array(
+      'title' => t('Drupdown Playground'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('drupdown_playground'),
+      'access callback' => TRUE,
+    ),
+  );
+}
+
+function drupdown_ace_modes_alter(&$modes) {
+  $modes['ace/mode/drupdown'] = drupal_get_path('module', 'drupdown') . '/mode-drupdown.js';
+}
+
+function drupdown_playground($form, &$form_state) {
+  $content = drupdown_to_html(@$form_state['values']['input']);
+  $form = array(
+    'input' => array(
+      '#type' => 'textarea',
+      '#ace' => TRUE,
+    ),
+    'transform' => array(
+      '#type' => 'button',
+      '#value' => t('Transform'),
+      '#ajax' => array(
+        'wrapper' => 'drupdown-playground-output',
+        'callback' => 'drupdown_playground_callback',
+        'effect' => 'fade',
+      ),
+    ),
+    'output' => array(
+      '#prefix' => '<div id="drupdown-playground-output">',
+      '#suffix' => '</div>',
+      'formatted' => array(
+        '#prefix' => '<div class="formatted-output clearfix">',
+        '#suffix' => '</div>',
+        '#markup' => $content, 
+      ),
+      'raw' => array(
+        '#prefix' => '<pre class="raw-output">',
+        '#suffix' => '</pre>',
+        '#markup' => htmlentities($content),
+      ),
+    ),
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'drupdown') . '/drupdown.css',
+      ),
+    ),
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_filter_info().
+ */
+function drupdown_filter_info() {
+  $filters['filter_drupdown'] = array(
+    'title' => t('Drupdown'),
+    'description' => t('Extended Markdown with Drupal flavor.'),
+    'process callback' => '_drupdown_process',
+  );
+  return $filters;
+}
+
+/**
+ * Main process callback.
+ */
+function _drupdown_process($text, $filter, $format, $langcode, $cache, $cache_id) {
+  return drupdown_to_html($text);
+}
+
+function drupdown_playground_callback($form, $form_state) {
+  return $form['output'];
+}
+
+function drupdown_to_html($input) {
+  module_load_include('inc', 'drupdown', 'markdown');
+  module_load_include('inc', 'drupdown', 'drupdown');
+  $parser = new DrupdownParser();
+	return $parser->transform($input);
+}
+
+function drupdown_process_reference($text, $url, $title, $modifier) {
+  // remove leading slashes
+  $url = preg_replace('/^\//', '', $url);
+  $classes = array(
+    '!' => '.drupdown-center',
+    '>' => '.drupdown-right',
+    '<' => '.drupdown-left',
+  );
+  $patterns = drupdown_url_patterns();
+  foreach ($patterns as $pattern => $callback) {
+    if (preg_match($pattern, $url, $matches)) {
+      $result = call_user_func_array($callback, array($text, $url, $title, $modifier, $matches));
+      if (strlen($result) > 0) {
+        return $result;
+      }
+    }
+  }
+}
+
+function drupdown_url_patterns() {
+  $patterns = array();
+  $patterns['/^(.*?)(\:\/\/?).*\.(png|jpg|jpeg|gif)$/i'] = '_drupdown_image_callback';
+  $patterns['/.*/'] = '_drupdown_link_callback';
+  return $patterns;
+}
+
+function _drupdown_image_callback($text, $url, $title, $modifier, $matches) {
+  $protocol = $matches[1];
+
+  if (!in_array($protocol, array('http', 'https', 'public', 'private'))) {
+    if (in_array($protocol, array_keys(image_styles()))) {
+      $url = image_style_url($protocol, str_replace($protocol, 'public', $url));
+    }
+    else {
+      return FALSE;
+    }
+  }
+
+  if ($modifier == '') {
+    return FALSE;
+  }
+
+  $classes = array(
+    '!' => 'drupdown-center',
+    '<' => 'drupdown-left',
+    '>' => 'drupdown-right',
+  );
+
+  return '<div>' . theme('image', array(
+    'path' => $url,
+    'title' => $title,
+    'alt' => $text,
+  )) . '</div>';
+}
+
+function _drupdown_link_callback($text, $url, $title, $modifier, $matches) {
+  return l($text, $url, array(
+    '#attributes' => array(
+      'title' => $title,
+    ),
+  ));
+}
