@@ -317,7 +317,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 
 		$codeblock = htmlspecialchars($codeblock, ENT_NOQUOTES);
 
-		$codeblock = "<pre><code data-language=\"{$matches[1]}\">$codeblock\n</code></pre>";
+		$codeblock = "<pre><code class=\"drupdown-code\" data-language=\"{$matches[1]}\">$codeblock\n</code></pre>";
 		return "\n\n".$this->hashBlock($codeblock)."\n\n";
 	}
 }

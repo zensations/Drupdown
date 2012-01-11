@@ -40,3 +40,14 @@
 .drupdown-table-center {
   text-align: center;
 }
+
+.drupdown-float-options {
+  width: 240px;
+  margin: 0px auto;
+}
+
+.drupdown-float-options .column {
+  width: 80px;
+  float: left;
+  text-align: center;
+}

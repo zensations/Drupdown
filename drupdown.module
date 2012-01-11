@@ -11,7 +11,17 @@ function drupdown_menu() {
 }
 
 function drupdown_ace_modes_alter(&$modes) {
-  $modes['ace/mode/drupdown'] = drupal_get_path('module', 'drupdown') . '/mode-drupdown.js';
+  $modes['ace/mode/drupdown'] = array(
+    'title' => t('Drupdown'),
+    'file' => drupal_get_path('module', 'drupdown') . '/js/mode-drupdown.js',
+  );
+}
+
+function drupdown_ace_toolbars_alter(&$toolbars) {
+  $toolbars['ace/toolbar/drupdown'] = array(
+    'title' => t('Drupdown'),
+    'file' => drupal_get_path('module', 'drupdown') . '/js/toolbar-drupdown.js',
+  );
 }
 
 function drupdown_playground($form, &$form_state) {
@@ -44,13 +54,12 @@ function drupdown_playground($form, &$form_state) {
         '#markup' => htmlentities($content),
       ),
     ),
-    '#attached' => array(
-      'css' => array(
-        drupal_get_path('module', 'drupdown') . '/drupdown.css',
-      ),
-    ),
   );
   return $form;
+}
+
+function drupdown_init() {
+  drupal_add_css(drupal_get_path('module', 'drupdown') . '/drupdown.css');
 }
 
 /**
@@ -144,4 +153,24 @@ function _drupdown_link_callback($text, $url, $title, $modifier, $matches) {
       'title' => $title,
     ),
   ));
+}
+
+function drupdown_element_info_alter(&$types) {
+  $types['managed_file']['#after_build'][] = 'drupdown_file_element_process';
+}
+
+function drupdown_file_element_process($element) {
+  if (array_key_exists('#file', $element) && is_object($element['#file'])) {
+    $element['file_uri'] = array(
+      '#name' => 'file_uri',
+      '#type' => 'hidden',
+      '#value' => $element['#file']->uri,
+    );
+    $element['file_name'] = array(
+      '#name' => 'file_name',
+      '#type' => 'hidden',
+      '#value' => $element['#file']->filename,
+    );
+  }
+  return $element;
 }
