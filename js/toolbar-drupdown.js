@@ -140,7 +140,11 @@
           }
         }).click(function() {
           var dialog;
-          dialog = $("<div title=\"" + (Drupal.t('Choose position')) + "\">" + (_this.floatOptions()) + "</div>").dialog({
+          dialog = $("<div title=\"" + (Drupal.t('Choose position')) + "\">" + (_this.floatOptions()) + "</div>");
+          $('.drupdown-float-options .column', dialog).click(function() {
+            return $('input', this).attr('checked', 'checked');
+          });
+          dialog.dialog({
             modal: true,
             show: 'fade',
             hide: 'fade',
@@ -164,7 +168,7 @@
           var dialog, range, text;
           range = _this.editor.getSelectionRange();
           text = _this.editor.getSession().doc.getTextRange(range);
-          dialog = $("<div title=\"" + (Drupal.t('Insert Link')) + "\" class=\"drupdown-dialog\">\n  <label for=\"text\">" + (Drupal.t('Link text')) + "</label>\n  <input type=\"text\" name=\"text\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"title\">" + (Drupal.t('Link title')) + "</label>\n  <input type=\"text\" name=\"title\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"uri\">" + (Drupal.t('Web address')) + "</label>\n  <input type=\"text\" name=\"uri\" class=\"ui-widget-content ui-corner-all\" value=\"\"/>\n</div>").dialog({
+          dialog = $("<div title=\"" + (Drupal.t('Insert Link')) + "\" class=\"drupdown-dialog\">\n ')label for=\"text\">" + (Drupal.t('Link text')) + "</label>\n  <input type=\"text\" name=\"text\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"title\">" + (Drupal.t('Link title')) + "</label>\n  <input type=\"text\" name=\"title\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"uri\">" + (Drupal.t('Web address')) + "</label>\n  <input type=\"text\" name=\"uri\" class=\"ui-widget-content ui-corner-all\" value=\"\"/>\n</div>").dialog({
             modal: true,
             show: 'fade',
             hide: 'fade',
@@ -192,6 +196,9 @@
           range = _this.editor.getSelectionRange();
           text = _this.editor.getSession().doc.getTextRange(range);
           dialog = $("<div title=\"" + (Drupal.t('Insert Resource')) + "\" class=\"drupdown-dialog\">\n  " + (_this.floatOptions()) + "\n  <label for=\"text\">" + (Drupal.t('Alternative text')) + "</label>\n  <input type=\"text\" name=\"text\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"title\">" + (Drupal.t('Caption')) + "</label>\n  <input type=\"text\" name=\"title\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"uri\">" + (Drupal.t('Web address')) + "</label>\n  <div class=\"drupdown-resource\">\n    <input type=\"text\" name=\"uri\" class=\"uri ui-widget-content ui-corner-all\" value=\"\"/>\n    <button class=\"drupdown-resource-choose\">Choose</button>\n  </div>\n</div>");
+          $('.drupdown-float-options .column', dialog).click(function() {
+            return $('input', this).attr('checked', 'checked');
+          });
           files = (function() {
             var _i, _len, _ref, _results;
             _ref = $('.drupdown-resource');
@@ -241,7 +248,7 @@
                 text = $('input[name=text]', dialog).val();
                 title = $('input[name=title]', dialog).val();
                 uri = $('input[name=uri]', dialog).val();
-                link = "[" + text + "](" + uri + " \"" + title + "\")";
+                link = "" + sign + "[" + text + "](" + uri + " \"" + title + "\")";
                 _this.editor.getSession().replace(range, link);
                 return dialog.dialog('close');
               }

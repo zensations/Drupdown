@@ -121,7 +121,10 @@ define 'ace/toolbar/drupdown', ['require', 'exports', 'module'], (require, expor
       # QUOTE
       blocks = $('<span></span>')
       $('<button>quote</button>').button({text:false,icons:{primary:'ui-icon-comment'}}).click( =>
-        dialog = $("<div title=\"#{Drupal.t('Choose position')}\">#{@floatOptions()}</div>").dialog
+        dialog = $("<div title=\"#{Drupal.t('Choose position')}\">#{@floatOptions()}</div>")
+        $('.drupdown-float-options .column', dialog).click ->
+          $('input', this).attr('checked', 'checked')
+        dialog.dialog
           modal: true
           show: 'fade'
           hide: 'fade'
@@ -139,7 +142,7 @@ define 'ace/toolbar/drupdown', ['require', 'exports', 'module'], (require, expor
         text = @editor.getSession().doc.getTextRange(range)
         dialog = $("""
           <div title="#{Drupal.t('Insert Link')}" class="drupdown-dialog">
-            <label for="text">#{Drupal.t('Link text')}</label>
+           ')label for="text">#{Drupal.t('Link text')}</label>
             <input type="text" name="text" class="ui-widget-content ui-corner-all" value="#{text}"/>
             <label for="title">#{Drupal.t('Link title')}</label>
             <input type="text" name="title" class="ui-widget-content ui-corner-all" value="#{text}"/>
@@ -178,6 +181,8 @@ define 'ace/toolbar/drupdown', ['require', 'exports', 'module'], (require, expor
             </div>
           </div>
         """)
+        $('.drupdown-float-options .column', dialog).click ->
+          $('input', this).attr('checked', 'checked')
         files = ($(file).val() for file in $('.drupdown-resource'))
         for file in files
           $.each Drupal.settings.drupdown.styles, (style, val)->
@@ -204,7 +209,7 @@ define 'ace/toolbar/drupdown', ['require', 'exports', 'module'], (require, expor
               text = $('input[name=text]', dialog).val()
               title = $('input[name=title]', dialog).val()
               uri = $('input[name=uri]', dialog).val()
-              link = "[#{text}](#{uri} \"#{title}\")"
+              link = "#{sign}[#{text}](#{uri} \"#{title}\")"
               @editor.getSession().replace(range, link)
               dialog.dialog('close')
         return false;
