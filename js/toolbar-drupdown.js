@@ -82,14 +82,15 @@
       };
 
       DrupdownToolbar.prototype.floatOptions = function() {
-        return '<div class="drupdown-float-options">\n  <div class="column">\n    <div class="icon-float-left">Left</div>\n    <input type="radio" name="position" value="<"/>\n  </div>\n  <div class="column">\n    <div class="icon-float-center">Center</div>\n    <input type="radio" name="position" value="|" checked/>\n  </div>\n  <div class="column">\n    <div class="icon-float-right">Right</div>\n    <input type="radio" name="position" value=">"/>\n  </div>\n</div>';
+        return '<div class="drupdown-float-options clearfix">\n  <div class="column">\n    <div class="icon-float-left">Left</div>\n    <input type="radio" name="position" value="<"/>\n  </div>\n  <div class="column">\n    <div class="icon-float-center">Center</div>\n    <input type="radio" name="position" value="|" checked/>\n  </div>\n  <div class="column">\n    <div class="icon-float-right">Right</div>\n    <input type="radio" name="position" value=">"/>\n  </div>\n</div>';
       };
 
       DrupdownToolbar.prototype.processQuote = function() {};
 
       DrupdownToolbar.prototype.render = function() {
-        var headingbutton, i,
+        var blocks, headingbutton, headings, i, lists, styles,
           _this = this;
+        headings = $('<span></span>');
         headingbutton = function(i) {
           var button;
           return button = $("<button>H" + i + "</button>").button().click(function() {
@@ -98,25 +99,29 @@
           });
         };
         for (i = 1; i <= 5; i++) {
-          this.element.append(headingbutton(i));
+          headings.append(headingbutton(i));
         }
+        headings.buttonset().appendTo(this.element);
+        styles = $('<span></span>');
         $('<button><span style="font-weight:bold">B</span></button>').button().click(function() {
           _this.emphasize(2);
           return false;
-        }).appendTo(this.element);
+        }).appendTo(styles);
         $('<button><span style="font-style:italic">I</span></button>').button().click(function() {
           _this.emphasize(1);
           return false;
-        }).appendTo(this.element);
+        }).appendTo(styles);
+        styles.buttonset().appendTo(this.element);
+        lists = $('<span></span>');
         $('<button>ul</button>').button({
           text: false,
           icons: {
-            primary: 'ui-icon-help'
+            primary: 'ui-icon-bullet'
           }
         }).click(function() {
           _this.prefixLines('-');
           return false;
-        }).appendTo(this.element);
+        }).appendTo(lists);
         $('<button>ol</button>').button({
           text: false,
           icons: {
@@ -125,7 +130,9 @@
         }).click(function() {
           _this.prefixLines('+');
           return false;
-        }).appendTo(this.element);
+        }).appendTo(lists);
+        lists.buttonset().appendTo(this.element);
+        blocks = $('<span></span>');
         $('<button>quote</button>').button({
           text: false,
           icons: {
@@ -147,7 +154,7 @@
             }
           });
           return false;
-        }).appendTo(this.element);
+        }).appendTo(blocks);
         $('<button>link</button>').button({
           text: false,
           icons: {
@@ -157,7 +164,7 @@
           var dialog, range, text;
           range = _this.editor.getSelectionRange();
           text = _this.editor.getSession().doc.getTextRange(range);
-          dialog = $("<div title=\"" + (Drupal.t('Insert Link')) + "\">\n  <label for=\"text\">" + (Drupal.t('Link text')) + "</label>\n  <input type=\"text\" name=\"text\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"title\">" + (Drupal.t('Link title')) + "</label>\n  <input type=\"text\" name=\"title\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"uri\">" + (Drupal.t('Web address')) + "</label>\n  <input type=\"text\" name=\"uri\" class=\"ui-widget-content ui-corner-all\" value=\"\"/>\n</div>").dialog({
+          dialog = $("<div title=\"" + (Drupal.t('Insert Link')) + "\" class=\"drupdown-dialog\">\n  <label for=\"text\">" + (Drupal.t('Link text')) + "</label>\n  <input type=\"text\" name=\"text\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"title\">" + (Drupal.t('Link title')) + "</label>\n  <input type=\"text\" name=\"title\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"uri\">" + (Drupal.t('Web address')) + "</label>\n  <input type=\"text\" name=\"uri\" class=\"ui-widget-content ui-corner-all\" value=\"\"/>\n</div>").dialog({
             modal: true,
             show: 'fade',
             hide: 'fade',
@@ -174,54 +181,54 @@
             }
           });
           return false;
-        }).appendTo(this.element);
-        return $('<button>embed</button>').button({
+        }).appendTo(blocks);
+        $('<button>embed</button>').button({
           text: false,
           icons: {
             primary: 'ui-icon-image'
           }
         }).click(function() {
-          var dialog, files, range, text;
+          var dialog, file, files, input, range, text, _i, _len;
           range = _this.editor.getSelectionRange();
           text = _this.editor.getSession().doc.getTextRange(range);
-          dialog = $("<div title=\"" + (Drupal.t('Insert Link')) + "\">\n  " + (_this.floatOptions()) + "\n  <label for=\"text\">" + (Drupal.t('Alternative text')) + "</label>\n  <input type=\"text\" name=\"text\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"title\">" + (Drupal.t('Caption')) + "</label>\n  <input type=\"text\" name=\"title\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"uri\">" + (Drupal.t('Web address')) + "</label>\n  <input type=\"text\" name=\"uri\" class=\"uri ui-widget-content ui-corner-all\" value=\"\"/>\n</div>");
-          files = $('.field-type-image .form-managed-file, .field-type-file .form-managed-file', _this.element.parents('form'));
-          if (files.length) {
-            $('<button>Choose</button>').button({
-              text: false,
-              icons: {
-                primary: 'ui-icon-search'
+          dialog = $("<div title=\"" + (Drupal.t('Insert Resource')) + "\" class=\"drupdown-dialog\">\n  " + (_this.floatOptions()) + "\n  <label for=\"text\">" + (Drupal.t('Alternative text')) + "</label>\n  <input type=\"text\" name=\"text\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"title\">" + (Drupal.t('Caption')) + "</label>\n  <input type=\"text\" name=\"title\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"uri\">" + (Drupal.t('Web address')) + "</label>\n  <div class=\"drupdown-resource\">\n    <input type=\"text\" name=\"uri\" class=\"uri ui-widget-content ui-corner-all\" value=\"\"/>\n    <button class=\"drupdown-resource-choose\">Choose</button>\n  </div>\n</div>");
+          files = (function() {
+            var _i, _len, _ref, _results;
+            _ref = $('.drupdown-resource');
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              file = _ref[_i];
+              _results.push($(file).val());
+            }
+            return _results;
+          })();
+          for (_i = 0, _len = files.length; _i < _len; _i++) {
+            file = files[_i];
+            $.each(Drupal.settings.drupdown.styles, function(style, val) {
+              var path;
+              if (val && val !== 'original') {
+                path = file.replace(/^original:\/\//, style + '://');
+                return files.push(path);
               }
-            }).appendTo(dialog).click(function() {
-              var file, filedialog, filerow, name, uri, _i, _len;
-              filedialog = $("<div title=\"" + (Drupal.t('Choose an attached file:')) + "\"><ul class=\"files-list\"></ul></div>");
-              for (_i = 0, _len = files.length; _i < _len; _i++) {
-                file = files[_i];
-                uri = $('input[name=file_uri]', file).val();
-                name = $('input[name=file_name]', file).val();
-                if (uri && name) {
-                  filerow = $("<li><a href=\"" + uri + "\">" + name + "</a></li>");
-                  $('a', filerow).click(function() {
-                    $('input[name=uri]', dialog).val($(this).attr('href'));
-                    filedialog.dialog('close');
-                    return false;
-                  });
-                  $('ul', filedialog).append(filerow);
-                }
-              }
-              return filedialog.dialog({
-                modal: true,
-                show: 'fade',
-                hide: 'fade'
-              });
             });
           }
-          $('button.choose-file', dialog).button({
+          input = $('input[name=uri]', dialog);
+          $(input).autocomplete({
+            source: files,
+            minlength: 0,
+            delay: 0
+          });
+          $('.drupdown-resource-choose', dialog).button({
             text: false,
             icons: {
               primary: 'ui-icon-search'
             }
-          }).click(function() {});
+          }).click(function() {
+            $(input).autocomplete('search', ':');
+            $(this).blur();
+            $(input).focus();
+            return false;
+          });
           dialog.dialog({
             modal: true,
             show: 'fade',
@@ -229,19 +236,20 @@
             buttons: {
               'OK': function() {
                 var link, sign, title, uri;
+                sign = $('input[name=position]:checked', dialog).val();
+                if (sign === '|') sign = '!';
                 text = $('input[name=text]', dialog).val();
                 title = $('input[name=title]', dialog).val();
                 uri = $('input[name=uri]', dialog).val();
-                sign = $('input[name=position]:checked', dialog).val();
-                if (sign === '|') sign = '!';
-                link = "" + sign + "[" + text + "](" + uri + " \"" + title + "\")";
+                link = "[" + text + "](" + uri + " \"" + title + "\")";
                 _this.editor.getSession().replace(range, link);
                 return dialog.dialog('close');
               }
             }
           });
           return false;
-        }).appendTo(this.element);
+        }).appendTo(blocks);
+        return blocks.buttonset().appendTo(this.element);
       };
 
       return DrupdownToolbar;

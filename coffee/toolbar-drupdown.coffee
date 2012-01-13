@@ -66,7 +66,7 @@ define 'ace/toolbar/drupdown', ['require', 'exports', 'module'], (require, expor
 
     floatOptions: ->
       return '''
-        <div class="drupdown-float-options">
+        <div class="drupdown-float-options clearfix">
           <div class="column">
             <div class="icon-float-left">Left</div>
             <input type="radio" name="position" value="<"/>
@@ -85,35 +85,41 @@ define 'ace/toolbar/drupdown', ['require', 'exports', 'module'], (require, expor
 
     render: ->
       # HEADING BUTTONS
+      headings = $('<span></span>')
       headingbutton = (i) =>
         button = $("<button>H#{i}</button>").button().click =>
           @header(i)
           return false
-      @element.append(headingbutton(i)) for i in [1..5]
+      headings.append(headingbutton(i)) for i in [1..5]
+      headings.buttonset().appendTo(@element)
 
       # BOLD AND ITALIC
+      styles = $('<span></span>')
       $('<button><span style="font-weight:bold">B</span></button>').button().click =>
         @emphasize(2)
         return false
-      .appendTo(@element)
+      .appendTo(styles)
 
       $('<button><span style="font-style:italic">I</span></button>').button().click =>
         @emphasize(1)
         return false
-      .appendTo(@element)
+      .appendTo(styles)
+      styles.buttonset().appendTo(@element)
 
       # LISTS
-      $('<button>ul</button>').button({text:false,icons:{primary:'ui-icon-help'}}).click =>
+      lists = $('<span></span>')
+      $('<button>ul</button>').button({text:false,icons:{primary:'ui-icon-bullet'}}).click =>
         @prefixLines('-')
         return false;
-      .appendTo(@element)
-
+      .appendTo(lists)
       $('<button>ol</button>').button({text:false,icons:{primary:'ui-icon-check'}}).click =>
         @prefixLines('+')
         return false;
-      .appendTo(@element)
+      .appendTo(lists)
+      lists.buttonset().appendTo(@element)
 
       # QUOTE
+      blocks = $('<span></span>')
       $('<button>quote</button>').button({text:false,icons:{primary:'ui-icon-comment'}}).click( =>
         dialog = $("<div title=\"#{Drupal.t('Choose position')}\">#{@floatOptions()}</div>").dialog
           modal: true
@@ -125,14 +131,14 @@ define 'ace/toolbar/drupdown', ['require', 'exports', 'module'], (require, expor
               @prefixLines(sign)
               dialog.dialog('close')
         return false
-      ).appendTo(@element)
+      ).appendTo(blocks)
 
       # EXTERNALS
       $('<button>link</button>').button({text:false,icons:{primary:'ui-icon-link'}}).click =>
         range = @editor.getSelectionRange()
         text = @editor.getSession().doc.getTextRange(range)
         dialog = $("""
-          <div title="#{Drupal.t('Insert Link')}">
+          <div title="#{Drupal.t('Insert Link')}" class="drupdown-dialog">
             <label for="text">#{Drupal.t('Link text')}</label>
             <input type="text" name="text" class="ui-widget-content ui-corner-all" value="#{text}"/>
             <label for="title">#{Drupal.t('Link title')}</label>
@@ -153,61 +159,57 @@ define 'ace/toolbar/drupdown', ['require', 'exports', 'module'], (require, expor
               @editor.getSession().replace(range, link)
               dialog.dialog('close')
         return false;
-      .appendTo(@element)
+      .appendTo(blocks)
 
       $('<button>embed</button>').button({text:false,icons:{primary:'ui-icon-image'}}).click =>
         range = @editor.getSelectionRange()
         text = @editor.getSession().doc.getTextRange(range)
         dialog = $("""
-          <div title="#{Drupal.t('Insert Link')}">
+          <div title="#{Drupal.t('Insert Resource')}" class="drupdown-dialog">
             #{@floatOptions()}
             <label for="text">#{Drupal.t('Alternative text')}</label>
             <input type="text" name="text" class="ui-widget-content ui-corner-all" value="#{text}"/>
             <label for="title">#{Drupal.t('Caption')}</label>
             <input type="text" name="title" class="ui-widget-content ui-corner-all" value="#{text}"/>
             <label for="uri">#{Drupal.t('Web address')}</label>
-            <input type="text" name="uri" class="uri ui-widget-content ui-corner-all" value=""/>
+            <div class="drupdown-resource">
+              <input type="text" name="uri" class="uri ui-widget-content ui-corner-all" value=""/>
+              <button class="drupdown-resource-choose">Choose</button>
+            </div>
           </div>
         """)
-        files = $('.field-type-image .form-managed-file, .field-type-file .form-managed-file', @element.parents('form'))
-        if files.length
-          $('<button>Choose</button>').button({text:false,icons:{primary:'ui-icon-search'}})
-            .appendTo(dialog).click ->
-              filedialog = $("""<div title="#{Drupal.t('Choose an attached file:')}"><ul class="files-list"></ul></div>""")
-              for file in files
-                uri = $('input[name=file_uri]', file).val()
-                name = $('input[name=file_name]', file).val()
-                if uri and name
-                  filerow = $("""
-                  <li><a href=\"#{uri}\">#{name}</a></li>
-                  """)
-                  $('a', filerow).click ->
-                    $('input[name=uri]', dialog).val($(this).attr('href'))
-                    filedialog.dialog('close')
-                    return false
-                  $('ul', filedialog).append(filerow)
-              filedialog.dialog({
-                modal: true
-                show: 'fade'
-                hide: 'fade'
-              })
-        $('button.choose-file', dialog).button({text:false, icons:{primary:'ui-icon-search'}}).click =>
+        files = ($(file).val() for file in $('.drupdown-resource'))
+        for file in files
+          $.each Drupal.settings.drupdown.styles, (style, val)->
+            if (val && val != 'original')
+              path = file.replace /^original:\/\//, style + '://'
+              files.push path
+
+        input = $('input[name=uri]', dialog)
+        $(input).autocomplete({source: files, minlength:0, delay:0})
+        $('.drupdown-resource-choose', dialog).button({text:false,icons:{primary:'ui-icon-search'}}).click ->
+          $(input).autocomplete('search', ':')
+          $(this).blur()
+          $(input).focus()
+          return false
+
         dialog.dialog
           modal: true
           show: 'fade'
           hide: 'fade'
           buttons:
             'OK': =>
+              sign = $('input[name=position]:checked', dialog).val()
+              sign = '!' if sign is '|'
               text = $('input[name=text]', dialog).val()
               title = $('input[name=title]', dialog).val()
               uri = $('input[name=uri]', dialog).val()
-              sign = $('input[name=position]:checked', dialog).val()
-              sign = '!' if sign == '|'
-              link = "#{sign}[#{text}](#{uri} \"#{title}\")"
+              link = "[#{text}](#{uri} \"#{title}\")"
               @editor.getSession().replace(range, link)
               dialog.dialog('close')
         return false;
-      .appendTo(@element)
+      .appendTo(blocks)
+      blocks.buttonset().appendTo(@element)
 
   exports.Toolbar = DrupdownToolbar
   return

@@ -46,8 +46,48 @@
   margin: 0px auto;
 }
 
+.drupdown-float-options .icon-float-left,
+.drupdown-float-options .icon-float-right,
+.drupdown-float-options .icon-float-center {
+  width: 60px;
+  height: 60px;
+  margin: 5px auto;
+  border: 1px solid black;
+  text-indent: -999em;
+  overflow: hidden;
+}
+
+.drupdown-float-options .icon-float-left {
+  background: url(images/float_left.png);
+}
+.drupdown-float-options .icon-float-right {
+  background: url(images/float_right.png);
+}
+.drupdown-float-options .icon-float-center {
+  background: url(images/center.png);
+}
+
 .drupdown-float-options .column {
   width: 80px;
   float: left;
   text-align: center;
+}
+
+.drupdown-dialog input[type=text] {
+  width: 100%;
+}
+.drupdown-dialog label {
+  margin-top: 1em;
+}
+
+.drupdown-dialog .drupdown-resource input {
+  width: 84%;
+}
+.drupdown-dialog .drupdown-resource button {
+  padding: 0em;
+}
+
+.drupdown-dialog .drupdown-resource .ui-button-text {
+  padding: 0em;
+  padding-bottom: 1px;
 }

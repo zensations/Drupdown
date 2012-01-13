@@ -7,20 +7,63 @@ function drupdown_menu() {
       'page arguments' => array('drupdown_playground'),
       'access callback' => TRUE,
     ),
+    'admin/config/content/drupdown' => array(
+      'title' => t('Drupdown'),
+      'description' => t('Adminsiter Drupdown settings.'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('drupdown_settings'),
+      'access arguments' => array('administer site configuration'),
+    ),
   );
 }
 
-function drupdown_ace_modes_alter(&$modes) {
-  $modes['ace/mode/drupdown'] = array(
-    'title' => t('Drupdown'),
-    'file' => drupal_get_path('module', 'drupdown') . '/js/mode-drupdown.js',
+function drupdown_settings($form, $form_state) {
+  $form['image_formats'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Available image styles'),
+    '#description' => t('Image styles which are available in the drupdown editor.'),
+    'drupdown_styles' => array(
+      '#type' => 'checkboxes',
+      '#options' => array('original' => 'original'),
+      '#default_value' => variable_get('drupdown_styles', array()),
+    ),
   );
+  foreach (image_styles() as $id => $style) {
+    $form['image_formats']['drupdown_styles']['#options'][$id] = $style['name'];
+  }
+  return system_settings_form($form);
 }
 
-function drupdown_ace_toolbars_alter(&$toolbars) {
-  $toolbars['ace/toolbar/drupdown'] = array(
+function drupdown_init() {
+  drupal_add_js(array('drupdown' => array('styles' => variable_get('drupdown_styles', array()))), 'setting');
+}
+
+function drupdown_ace_plugins_alter(&$plugins) {
+  $plugins['modes']['drupdown'] = array(
     'title' => t('Drupdown'),
-    'file' => drupal_get_path('module', 'drupdown') . '/js/toolbar-drupdown.js',
+    'module' => 'ace/mode/drupdown',
+    'attached' => array(
+      'js' => array(
+        drupal_get_path('module', 'drupdown') . '/js/mode-drupdown.js',
+      ),
+    ),
+  );
+  $plugins['toolbars']['drupdown'] = array(
+    'title' => t('Drupdown'),
+    'module' => 'ace/toolbar/drupdown',
+    'attached' => array(
+      'js' => array(
+        drupal_get_path('module', 'drupdown') . '/js/toolbar-drupdown.js',
+      ),
+      'css' => array(
+        drupal_get_path('module', 'drupdown') . '/drupdown.css',
+      ),
+      'library' => array(
+        array('system', 'ui.dialog'),
+        array('system', 'ui.autocomplete'),
+        array('system', 'effects.fade'),
+      ),
+    ),
   );
 }
 
@@ -30,6 +73,7 @@ function drupdown_playground($form, &$form_state) {
     'input' => array(
       '#type' => 'textarea',
       '#ace' => TRUE,
+      '#ace_format' => 'drupdown',
     ),
     'transform' => array(
       '#type' => 'button',
@@ -56,10 +100,6 @@ function drupdown_playground($form, &$form_state) {
     ),
   );
   return $form;
-}
-
-function drupdown_init() {
-  drupal_add_css(drupal_get_path('module', 'drupdown') . '/drupdown.css');
 }
 
 /**
@@ -120,7 +160,10 @@ function drupdown_url_patterns() {
 
 function _drupdown_image_callback($text, $url, $title, $modifier, $matches) {
   $protocol = $matches[1];
-
+  if ($protocol == 'original') {
+    $protocol = 'public';
+    $url = str_replace('original://', 'public://', $url);
+  }
   if (!in_array($protocol, array('http', 'https', 'public', 'private'))) {
     if (in_array($protocol, array_keys(image_styles()))) {
       $url = image_style_url($protocol, str_replace($protocol, 'public', $url));
@@ -161,16 +204,19 @@ function drupdown_element_info_alter(&$types) {
 
 function drupdown_file_element_process($element) {
   if (array_key_exists('#file', $element) && is_object($element['#file'])) {
-    $element['file_uri'] = array(
-      '#name' => 'file_uri',
-      '#type' => 'hidden',
-      '#value' => $element['#file']->uri,
-    );
-    $element['file_name'] = array(
-      '#name' => 'file_name',
-      '#type' => 'hidden',
-      '#value' => $element['#file']->filename,
-    );
+    if (in_array('image_field_widget_process', $element['#process'])) {
+      $element['file_uri'] = array(
+        '#type' => 'hidden',
+        '#value' => str_replace('public://', 'original://', $element['#file']->uri),
+        '#attributes' => array('class' => array('drupdown-resource')),
+      );
+    } else {
+      $element['file_uri'] = array(
+        '#type' => 'hidden',
+        '#value' => $element['#file']->uri,
+        '#attributes' => array('class' => array('drupdown-resource')),
+      );
+    }
   }
   return $element;
 }
