@@ -72,7 +72,7 @@ define('ace/mode/drupdown', ['require', 'exports', 'module' , 'ace/lib/oop', 'ac
           return "";
         }
       } else if (state == "blockquote") {
-        var match = /^((?:.+)?)([<>\|][ ]+)/.exec(line);
+        var match = /^((?:.+)?)([<>!][ ]+)/.exec(line);
         if (match) {
           return new Array(match[1].length + 1).join(" ") + match[2];
         } else {
@@ -2893,7 +2893,7 @@ define('ace/mode/behaviour/cstyle', ['require', 'exports', 'module' , 'ace/lib/o
                       next  : "githubblock"
                     }, { // block quote
                       token : "string",
-                      regex : "^[<>\|][ ].+$",
+                      regex : "^[<>!][ ].+$",
                       next  : "blockquote"
                     }, { // reference
                       token : ["text", "constant", "text", "url", "string", "text"],

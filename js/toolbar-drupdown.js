@@ -8,9 +8,11 @@
     Range = require("ace/range").Range;
     DrupdownToolbar = (function() {
 
-      function DrupdownToolbar(element, editor) {
+      function DrupdownToolbar(element, editor, field_name, format) {
         this.element = element;
         this.editor = editor;
+        this.field_name = field_name;
+        this.format = format;
       }
 
       DrupdownToolbar.prototype.header = function(level) {
@@ -82,7 +84,7 @@
       };
 
       DrupdownToolbar.prototype.floatOptions = function() {
-        return '<div class="drupdown-float-options clearfix">\n  <div class="column">\n    <div class="icon-float-left">Left</div>\n    <input type="radio" name="position" value="<"/>\n  </div>\n  <div class="column">\n    <div class="icon-float-center">Center</div>\n    <input type="radio" name="position" value="|" checked/>\n  </div>\n  <div class="column">\n    <div class="icon-float-right">Right</div>\n    <input type="radio" name="position" value=">"/>\n  </div>\n</div>';
+        return '<div class="drupdown-float-options clearfix">\n  <div class="column">\n    <div class="icon-float-left">Left</div>\n    <input type="radio" name="position" value="<"/>\n  </div>\n  <div class="column">\n    <div class="icon-float-center">Center</div>\n    <input type="radio" name="position" value="!" checked/>\n  </div>\n  <div class="column">\n    <div class="icon-float-right">Right</div>\n    <input type="radio" name="position" value=">"/>\n  </div>\n</div>';
       };
 
       DrupdownToolbar.prototype.processQuote = function() {};
@@ -192,32 +194,35 @@
             primary: 'ui-icon-image'
           }
         }).click(function() {
-          var dialog, file, files, input, range, text, _i, _len;
+          var dialog, file, files, formats, input, range, style, text, _i, _j, _len, _len2, _ref;
           range = _this.editor.getSelectionRange();
           text = _this.editor.getSession().doc.getTextRange(range);
           dialog = $("<div title=\"" + (Drupal.t('Insert Resource')) + "\" class=\"drupdown-dialog\">\n  " + (_this.floatOptions()) + "\n  <label for=\"text\">" + (Drupal.t('Alternative text')) + "</label>\n  <input type=\"text\" name=\"text\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"title\">" + (Drupal.t('Caption')) + "</label>\n  <input type=\"text\" name=\"title\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"uri\">" + (Drupal.t('Web address')) + "</label>\n  <div class=\"drupdown-resource\">\n    <input type=\"text\" name=\"uri\" class=\"uri ui-widget-content ui-corner-all\" value=\"\"/>\n    <button class=\"drupdown-resource-choose\">Choose</button>\n  </div>\n</div>");
           $('.drupdown-float-options .column', dialog).click(function() {
             return $('input', this).attr('checked', 'checked');
           });
-          files = (function() {
-            var _i, _len, _ref, _results;
+          files = [];
+          formats = Drupal.settings.drupdown.styles[_this.field_name][_this.format];
+          _ref = (function() {
+            var _j, _len, _ref, _results;
             _ref = $('.drupdown-resource');
             _results = [];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              file = _ref[_i];
+            for (_j = 0, _len = _ref.length; _j < _len; _j++) {
+              file = _ref[_j];
               _results.push($(file).val());
             }
             return _results;
           })();
-          for (_i = 0, _len = files.length; _i < _len; _i++) {
-            file = files[_i];
-            $.each(Drupal.settings.drupdown.styles, function(style, val) {
-              var path;
-              if (val && val !== 'original') {
-                path = file.replace(/^original:\/\//, style + '://');
-                return files.push(path);
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            file = _ref[_i];
+            if (file.match(/^original:\/\//)) {
+              for (_j = 0, _len2 = formats.length; _j < _len2; _j++) {
+                style = formats[_j];
+                files.push(file.replace(/^original:\/\//, style + '://'));
               }
-            });
+            } else {
+              files.push(file);
+            }
           }
           input = $('input[name=uri]', dialog);
           $(input).autocomplete({

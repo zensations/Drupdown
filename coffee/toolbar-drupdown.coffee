@@ -2,7 +2,7 @@ $ = jQuery
 define 'ace/toolbar/drupdown', ['require', 'exports', 'module'], (require, exports, module) ->
   Range = require("ace/range").Range;
   class DrupdownToolbar
-    constructor: (@element, @editor) ->
+    constructor: (@element, @editor, @field_name, @format) ->
 
     header: (level) ->
       session = @editor.getSession()
@@ -73,7 +73,7 @@ define 'ace/toolbar/drupdown', ['require', 'exports', 'module'], (require, expor
           </div>
           <div class="column">
             <div class="icon-float-center">Center</div>
-            <input type="radio" name="position" value="|" checked/>
+            <input type="radio" name="position" value="!" checked/>
           </div>
           <div class="column">
             <div class="icon-float-right">Right</div>
@@ -183,12 +183,14 @@ define 'ace/toolbar/drupdown', ['require', 'exports', 'module'], (require, expor
         """)
         $('.drupdown-float-options .column', dialog).click ->
           $('input', this).attr('checked', 'checked')
-        files = ($(file).val() for file in $('.drupdown-resource'))
-        for file in files
-          $.each Drupal.settings.drupdown.styles, (style, val)->
-            if (val && val != 'original')
-              path = file.replace /^original:\/\//, style + '://'
-              files.push path
+        files = []
+        formats = Drupal.settings.drupdown.styles[@field_name][@format]
+        for file in ($(file).val() for file in $('.drupdown-resource'))
+          if file.match /^original:\/\//
+            for style in formats
+              files.push file.replace /^original:\/\//, style + '://'
+          else
+            files.push file
 
         input = $('input[name=uri]', dialog)
         $(input).autocomplete({source: files, minlength:0, delay:0})

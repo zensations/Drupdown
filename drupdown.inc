@@ -1,9 +1,11 @@
 <?php
 class DrupdownParser extends MarkdownExtra_Parser {
+  var $settings = array();
   /**
    * Remove "doImages" to unify handling of external resources. 
    */
-  function __construct() {
+  function __construct($settings) {
+    $this->settings = $settings;
     $this->block_gamut['doEmbeds'] = 55;
     $this->span_gamut['doEmbeds'] = 0;
     $this->block_gamut['doCodeBlocks'] = 5;
@@ -35,7 +37,8 @@ class DrupdownParser extends MarkdownExtra_Parser {
 
 			  \[
 				(.*?)		# id = $4
-			  \]
+        \]
+        \n
 			)
 			}xs',
 			array(&$this, '_doEmbeds_reference_callback'), $text);
@@ -44,7 +47,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 		# Next, inline-style links: [link text](url "optional title")
 		#
 		$text = preg_replace_callback('{
-			(				# wrap whole match in $1
+			(			# wrap whole match in $1
         ([<>!])
         \[
 				('.$this->nested_brackets_re.')	# link text = $3
@@ -61,9 +64,10 @@ class DrupdownParser extends MarkdownExtra_Parser {
 				  ([\'"])	# quote char = $7
 				  (.*?)		# Title = $8
 				  \7		# matching quote
-				  [ \n]*	# ignore any spaces/tabs between closing quote and )
+				  [ \n]*	# ignore any spaces/tabs between closing quote
 				)?			# title is optional
 			  \)
+        \n
 			)
 			}xs',
 			array(&$this, '_doEmbeds_inline_callback'), $text);
@@ -79,6 +83,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 			  \[
 				([^\[\]]+)		# link text = $3; can\'t contain [ or ]
 			  \]
+        \n
 			)
 			}xs',
 			array(&$this, '_doEmbeds_reference_callback'), $text);
@@ -113,7 +118,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 			}
 		
 			$link_text = $this->runSpanGamut($link_text);
-      $result = drupdown_process_reference($link_text, $url, $title, $modifier);
+      $result = drupdown_process_reference($link_text, $url, $title, $modifier, $this->settings);
 			$result = $this->hashBlock($result);
 		}
 		else {
@@ -137,7 +142,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 		
 		$link_text = $this->runSpanGamut($link_text);
 
-    $result = drupdown_process_reference($link_text, $url, $title, $modifier);
+    $result = drupdown_process_reference($link_text, $url, $title, $modifier, $this->settings);
 		return $this->hashBlock($result);
 	}
 
@@ -195,7 +200,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 		$text = preg_replace_callback('/
 			  (								# Wrap whole match in $1
 				(?>
-				  ^[ ]*(<|>|\|)[ ]		# ">" at the start of a line
+				  ^[ ]*([<>!])[ ]		# ">" at the start of a line
 					.+\n					# rest of the first line
 				  (.+\n)*					# subsequent consecutive lines
 				  \n*						# blanks
@@ -214,7 +219,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 		$bq = $matches[1];
     $mod = $matches[2];
 		# trim one level of quoting - trim whitespace-only lines
-		$bq = preg_replace('/^[ ]*(<|>|\|)[ ]|^[ ]+$/m', '', $bq);
+		$bq = preg_replace('/^[ ]*[<>!][ ]|^[ ]+$/m', '', $bq);
 		$bq = $this->runBlockGamut($bq);		# recurse
 
 		$bq = preg_replace('/^/m', "  ", $bq);
@@ -226,7 +231,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
     $classes = array(
       '<' => 'drupdown-left',
       '>' => 'drupdown-right',
-      '|' => 'drupdown-center',
+      '!' => 'drupdown-center',
     );
 		return "\n". $this->hashBlock("<blockquote class=\"{$classes[$mod]}\">\n$bq\n</blockquote>")."\n\n";
 	}
