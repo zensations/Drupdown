@@ -184,10 +184,10 @@ define 'ace/toolbar/drupdown', ['require', 'exports', 'module'], (require, expor
         $('.drupdown-float-options .column', dialog).click ->
           $('input', this).attr('checked', 'checked')
         files = []
-        formats = Drupal.settings.drupdown.styles[@field_name][@format]
+        formats = Drupal.settings.drupdown.styles[@format]
         for file in ($(file).val() for file in $('.drupdown-resource'))
           if file.match /^original:\/\//
-            for style in formats
+            $.each formats, (style) ->
               files.push file.replace /^original:\/\//, style + '://'
           else
             files.push file

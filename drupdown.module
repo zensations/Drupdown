@@ -250,11 +250,12 @@ function drupdown_text_format_process($element) {
   $style_settings = array();
   foreach ($formats as $format_id) {
     $filters = filter_list_format($format_id);
+    $style_settings[$format_id] = array();
     foreach ($filters as $filter) {
       if ($filter->name == 'filter_drupdown') {
         foreach ($filter->settings['styles'] as $style) {
           if ($style) {
-            $style_settings[$element['#field_name']][$format_id][] = $style;
+            $style_settings[$format_id][$style] = $style;
           }
         }
       }

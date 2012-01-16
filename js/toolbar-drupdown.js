@@ -194,7 +194,7 @@
             primary: 'ui-icon-image'
           }
         }).click(function() {
-          var dialog, file, files, formats, input, range, style, text, _i, _j, _len, _len2, _ref;
+          var dialog, file, files, formats, input, range, text, _i, _len, _ref;
           range = _this.editor.getSelectionRange();
           text = _this.editor.getSession().doc.getTextRange(range);
           dialog = $("<div title=\"" + (Drupal.t('Insert Resource')) + "\" class=\"drupdown-dialog\">\n  " + (_this.floatOptions()) + "\n  <label for=\"text\">" + (Drupal.t('Alternative text')) + "</label>\n  <input type=\"text\" name=\"text\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"title\">" + (Drupal.t('Caption')) + "</label>\n  <input type=\"text\" name=\"title\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"uri\">" + (Drupal.t('Web address')) + "</label>\n  <div class=\"drupdown-resource\">\n    <input type=\"text\" name=\"uri\" class=\"uri ui-widget-content ui-corner-all\" value=\"\"/>\n    <button class=\"drupdown-resource-choose\">Choose</button>\n  </div>\n</div>");
@@ -202,7 +202,7 @@
             return $('input', this).attr('checked', 'checked');
           });
           files = [];
-          formats = Drupal.settings.drupdown.styles[_this.field_name][_this.format];
+          formats = Drupal.settings.drupdown.styles[_this.format];
           _ref = (function() {
             var _j, _len, _ref, _results;
             _ref = $('.drupdown-resource');
@@ -216,10 +216,9 @@
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             file = _ref[_i];
             if (file.match(/^original:\/\//)) {
-              for (_j = 0, _len2 = formats.length; _j < _len2; _j++) {
-                style = formats[_j];
-                files.push(file.replace(/^original:\/\//, style + '://'));
-              }
+              $.each(formats, function(style) {
+                return files.push(file.replace(/^original:\/\//, style + '://'));
+              });
             } else {
               files.push(file);
             }
