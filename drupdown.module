@@ -10,23 +10,19 @@ function drupdown_menu() {
   );
 }
 
-function drupdown_ace_plugins_alter(&$plugins) {
-  $plugins['modes']['drupdown'] = array(
-    'title' => t('Drupdown'),
-    'module' => 'ace/mode/drupdown',
-    'attached' => array(
-      'js' => array(
-        drupal_get_path('module', 'drupdown') . '/js/mode-drupdown.js',
-      ),
-    ),
+function drupdown_requirejs_paths() {
+  return array(
+    'drupdown' => drupal_get_path('module', 'drupdown') . '/js',
   );
-  $plugins['toolbars']['drupdown'] = array(
-    'title' => t('Drupdown'),
-    'module' => 'ace/toolbar/drupdown',
+}
+
+function drupdown_ace_plugins_alter(&$plugins) {
+  $plugins['modes']['drupdown/mode'] = array(
+    'title' => 'Drupdown',
+  );
+  $plugins['toolbars']['drupdown/toolbar'] = array(
+    'title' => 'Drupdown',
     'attached' => array(
-      'js' => array(
-        drupal_get_path('module', 'drupdown') . '/js/toolbar-drupdown.js',
-      ),
       'css' => array(
         drupal_get_path('module', 'drupdown') . '/drupdown.css',
       ),
@@ -224,6 +220,7 @@ function _drupdown_link_callback($text, $url, $title, $modifier, $matches) {
 function drupdown_element_info_alter(&$types) {
   $types['managed_file']['#process'][] = 'drupdown_file_element_process';
   $types['text_format']['#process'][] = 'drupdown_text_format_process';
+  $types['textarea']['#process'][] = 'drupdown_textarea_process';
 }
 
 function drupdown_file_element_process($element) {
@@ -246,7 +243,24 @@ function drupdown_file_element_process($element) {
 }
 
 function drupdown_text_format_process($element) {
-  $formats = array_keys($element['format']['format']['#options']);
+  if (array_key_exists('format', $element)) {
+    $formats = array_keys($element['format']['format']['#options']);
+    $style_settings = _drupdown_style_settings($formats);
+    drupal_add_js(array('drupdown' => array('styles' => $style_settings)), 'setting');
+  }
+  return $element;
+}
+
+function drupdown_textarea_process($element) {
+  if (array_key_exists('#ace_format', $element)) {
+    $format = $element['#ace_format'];
+    $style_settings = _drupdown_style_settings(array($format));
+    drupal_add_js(array('drupdown' => array('styles' => $style_settings)), 'setting');
+  }
+  return $element;
+}
+
+function _drupdown_style_settings($formats = array()) {
   $style_settings = array();
   foreach ($formats as $format_id) {
     $filters = filter_list_format($format_id);
@@ -261,6 +275,5 @@ function drupdown_text_format_process($element) {
       }
     }
   }
-  drupal_add_js(array('drupdown' => array('styles' => $style_settings)), 'setting');
-  return $element;
+  return $style_settings;
 }

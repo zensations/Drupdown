@@ -3,15 +3,14 @@
 
   $ = jQuery;
 
-  define('ace/toolbar/drupdown', ['require', 'exports', 'module'], function(require, exports, module) {
+  define('drupdown/toolbar', ['require', 'exports', 'module'], function(require, exports, module) {
     var DrupdownToolbar, Range;
     Range = require("ace/range").Range;
     DrupdownToolbar = (function() {
 
-      function DrupdownToolbar(element, editor, field_name, format) {
+      function DrupdownToolbar(element, editor, format) {
         this.element = element;
         this.editor = editor;
-        this.field_name = field_name;
         this.format = format;
       }
 
@@ -216,7 +215,7 @@
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             file = _ref[_i];
             if (file.match(/^original:\/\//)) {
-              $.each(formats, function(style) {
+              $.each(formats, function(name, style) {
                 return files.push(file.replace(/^original:\/\//, style + '://'));
               });
             } else {

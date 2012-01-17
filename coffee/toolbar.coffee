@@ -1,8 +1,8 @@
 $ = jQuery
-define 'ace/toolbar/drupdown', ['require', 'exports', 'module'], (require, exports, module) ->
+define 'drupdown/toolbar', ['require', 'exports', 'module'], (require, exports, module) ->
   Range = require("ace/range").Range;
   class DrupdownToolbar
-    constructor: (@element, @editor, @field_name, @format) ->
+    constructor: (@element, @editor, @format) ->
 
     header: (level) ->
       session = @editor.getSession()
@@ -184,11 +184,12 @@ define 'ace/toolbar/drupdown', ['require', 'exports', 'module'], (require, expor
         $('.drupdown-float-options .column', dialog).click ->
           $('input', this).attr('checked', 'checked')
         files = []
+
         formats = Drupal.settings.drupdown.styles[@format]
         for file in ($(file).val() for file in $('.drupdown-resource'))
           if file.match /^original:\/\//
-            $.each formats, (style) ->
-              files.push file.replace /^original:\/\//, style + '://'
+            $.each formats, (name, style) ->
+              files.push (file.replace(/^original:\/\//, style + '://'))
           else
             files.push file
 
