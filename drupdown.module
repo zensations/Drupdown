@@ -35,6 +35,10 @@ function drupdown_ace_plugins_alter(&$plugins) {
   );
 }
 
+function drupdown_init() {
+  drupal_add_css(drupal_get_path('module', 'drupdown') . '/drupdown.css');
+}
+
 function drupdown_playground($form, &$form_state) {
   $content = drupdown_to_html(@$form_state['values']['input'], array('styles' => array('original' => 'original', 'thumbnail' => 'thumbnail')));
   $form = array(
