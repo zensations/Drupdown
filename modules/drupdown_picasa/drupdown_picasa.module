@@ -1,13 +1,13 @@
 <?php
 function drupdown_picasa_drupdown_url_patterns() {
   $patterns['/picasaweb\.google\.com\/(.+?)\/([^?&]+)/'] = array(
-    'function' => 'drupdown_picasa_callback',
+    'function' => 'drupdown_picasa_gallery_callback',
     'weight' => 90,
   );
   return $patterns;
 }
 
-function drupdown_picasa_callback($text, $url, $settings, $matches) {
+function drupdown_picasa_gallery_callback($text, $url, $settings, $matches) {
   $user_id = $matches[1];
   $album = $matches[2];
   $url = 'https://picasaweb.google.com/data/feed/api/user/' . $user_id . '/album/' . $album . '?alt=json';
