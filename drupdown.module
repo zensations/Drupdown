@@ -1,4 +1,7 @@
 <?php
+/**
+ * Implements hook_menu().
+ */
 function drupdown_menu() {
   return array(
     'drupdown/playground' => array(
@@ -6,16 +9,41 @@ function drupdown_menu() {
       'page callback' => 'drupal_get_form',
       'page arguments' => array('drupdown_playground'),
       'access callback' => TRUE,
+      'file' => 'includes/drupdown.pages.inc',
     ),
   );
 }
 
+/**
+ * Implements hook_init().
+ */
+function drupdown_init() {
+  drupdown_get_url_patterns();
+  drupal_add_css(drupal_get_path('module', 'drupdown') . '/css/drupdown.css');
+}
+
+/**
+ * Processes an input string according to the settings provided.
+ */
+function drupdown_to_html($input, $settings) {
+  module_load_include('inc', 'drupdown', 'includes/markdown');
+  module_load_include('inc', 'drupdown', 'includes/drupdown.parser');
+  $parser = new DrupdownParser($settings);
+  return $parser->transform($input);
+}
+
+/**
+ * Implements hook_requirejs_paths().
+ */
 function drupdown_requirejs_paths() {
   return array(
     'drupdown' => drupal_get_path('module', 'drupdown') . '/js',
   );
 }
 
+/**
+ * Implements hook_ace_plugins_alter().
+ */
 function drupdown_ace_plugins_alter(&$plugins) {
   $plugins['modes']['drupdown/mode'] = array(
     'title' => 'Drupdown',
@@ -24,7 +52,7 @@ function drupdown_ace_plugins_alter(&$plugins) {
     'title' => 'Drupdown',
     'attached' => array(
       'css' => array(
-        drupal_get_path('module', 'drupdown') . '/drupdown.css',
+        drupal_get_path('module', 'drupdown') . '/css/toolbar.css',
       ),
       'library' => array(
         array('system', 'ui.dialog'),
@@ -35,44 +63,6 @@ function drupdown_ace_plugins_alter(&$plugins) {
   );
 }
 
-function drupdown_init() {
-  drupal_add_css(drupal_get_path('module', 'drupdown') . '/drupdown.css');
-}
-
-function drupdown_playground($form, &$form_state) {
-  $content = drupdown_to_html(@$form_state['values']['input'], array('styles' => array('original' => 'original', 'thumbnail' => 'thumbnail')));
-  $form = array(
-    'input' => array(
-      '#type' => 'textarea',
-      '#ace' => TRUE,
-      '#ace_format' => 'drupdown',
-    ),
-    'transform' => array(
-      '#type' => 'button',
-      '#value' => t('Transform'),
-      '#ajax' => array(
-        'wrapper' => 'drupdown-playground-output',
-        'callback' => 'drupdown_playground_callback',
-        'effect' => 'fade',
-      ),
-    ),
-    'output' => array(
-      '#prefix' => '<div id="drupdown-playground-output">',
-      '#suffix' => '</div>',
-      'formatted' => array(
-        '#prefix' => '<div class="formatted-output clearfix">',
-        '#suffix' => '</div>',
-        '#markup' => $content,
-      ),
-      'raw' => array(
-        '#prefix' => '<pre class="raw-output">',
-        '#suffix' => '</pre>',
-        '#markup' => htmlentities($content),
-      ),
-    ),
-  );
-  return $form;
-}
 
 /**
  * Implements hook_filter_info().
@@ -110,103 +100,54 @@ function _drupdown_process($text, $filter, $format, $langcode, $cache, $cache_id
   return drupdown_to_html($text, $filter->settings);
 }
 
-function drupdown_playground_callback($form, $form_state) {
-  return $form['output'];
-}
-
-function drupdown_to_html($input, $settings) {
-  module_load_include('inc', 'drupdown', 'markdown');
-  module_load_include('inc', 'drupdown', 'drupdown');
-  $parser = new DrupdownParser($settings);
-	return $parser->transform($input);
-}
-
 function drupdown_process_reference($text, $url, $title, $modifier, $settings) {
   // remove leading slashes
   $url = preg_replace('/^\//', '', $url);
   $classes = array(
-    '!' => '.drupdown-center',
-    '>' => '.drupdown-right',
-    '<' => '.drupdown-left',
+    '!' => 'center',
+    '>' => 'right',
+    '<' => 'left',
   );
-  $patterns = drupdown_url_patterns();
+  $patterns = drupdown_get_url_patterns();
   foreach ($patterns as $pattern => $callback) {
     if (preg_match($pattern, $url, $matches)) {
-      $result = call_user_func_array($callback, array($text, $url, $title, $modifier, $settings, $matches));
+      if (array_key_exists('file', $callback)) {
+        include_once $callback['file'];
+      }
+      $result = call_user_func_array($callback['function'], array($text, $url, $settings, $matches));
       if (strlen($result) > 0) {
+        return theme('figure', array(
+          'content' => $result,
+          'caption' => $title,
+          'float' => $classes[$modifier],
+        ));
         return $result;
       }
     }
   }
 }
 
-function drupdown_url_patterns() {
-  $patterns = array();
-  $patterns['/^(.*?)(\:\/\/?).*\.(png|jpg|jpeg|gif)$/i'] = '_drupdown_image_callback';
-  $patterns['/.*/'] = '_drupdown_link_callback';
+function drupdown_get_url_patterns() {
+  if ($cache = cache_get('drupdown_url_patterns')) {
+    return $cache->data;
+  }
+  drupal_set_message('Recreating patterns.');
+  $patterns = module_invoke_all('drupdown_url_patterns');
+  drupal_alter('drupdown_url_patterns', $patterns);
+  uasort($patterns, 'drupal_sort_weight');
+  cache_set('drupdown_url_patterns', $patterns);
   return $patterns;
 }
 
-function _drupdown_image_callback($text, $url, $title, $modifier, $settings, $matches) {
-  $protocol = $matches[1];
-  if (!@$settings['styles'][$protocol]) {
-    return false;
-  }
-  if ($protocol == 'original') {
-    $protocol = 'public';
-    $url = str_replace('original://', 'public://', $url);
-  }
-  $zoom = FALSE;
-  if (!in_array($protocol, array('http', 'https', 'public', 'private'))) {
-    if (in_array($protocol, array_keys(image_styles()))) {
-      $pub = str_replace($protocol . '://', 'public://', $url);
-      $style_url = image_style_url($protocol, $pub);
-      $style_path = drupal_realpath(image_style_path($protocol, $pub));
-      $original_path = drupal_realpath($pub);
-      $image_styles = image_styles();
-      if (!file_exists($style_path)) {
-        image_style_create_derivative($image_styles[$protocol], $original_path, $style_path);
-      }
-      $style_info = image_get_info($style_path);
-      $original_info = image_get_info($original_path);
-      $zoom = $style_info['width']*$style_info['height'] < ($original_info['width']*$original_info['height'])/1.3;
-      $original_url = file_create_url($pub);
-      $url = $style_url;
-    }
-    else {
-      return FALSE;
-    }
-  }
-
-  if ($modifier == '') {
-    return FALSE;
-  }
-
-  $float = array(
-    '!' => 'center',
-    '<' => 'left',
-    '>' => 'right',
+function drupdown_drupdown_url_patterns() {
+  $patterns = array();
+  $patterns['/.*/'] = array(
+    'function' => 'drupdown_link_callback',
+    'weight' => 100,
   );
-
-  $img = theme('image', array(
-    'path' => $url,
-    'title' => $title,
-    'alt' => $text,
-  ));
-
-  if ($zoom) {
-    $img = l($img, $original_url, array(
-      'html' => TRUE,
-      'attributes' => array('class' => 'colorbox'),
-    ));
-  }
-
-  return theme('figure', array(
-    'content' => $img,
-    'caption' => $title,
-    'float' => $float[$modifier],
-  ));
+  return $patterns;
 }
+
 
 function drupdown_theme() {
   return array(
@@ -235,71 +176,10 @@ function theme_figure($variables) {
   return $content;
 }
 
-function _drupdown_link_callback($text, $url, $title, $modifier, $matches) {
+function drupdown_link_callback($text, $url, $matches) {
   return l($text, $url, array(
     '#attributes' => array(
-      'title' => $title,
+      'title' => $text,
     ),
   ));
-}
-
-function drupdown_element_info_alter(&$types) {
-  $types['managed_file']['#process'][] = 'drupdown_file_element_process';
-  $types['text_format']['#process'][] = 'drupdown_text_format_process';
-  $types['textarea']['#process'][] = 'drupdown_textarea_process';
-}
-
-function drupdown_file_element_process($element) {
-  if (array_key_exists('#file', $element) && is_object($element['#file'])) {
-    if (in_array('image_field_widget_process', $element['#process'])) {
-      $element['file_uri'] = array(
-        '#type' => 'hidden',
-        '#value' => str_replace('public://', 'original://', $element['#file']->uri),
-        '#attributes' => array('class' => array('drupdown-resource')),
-      );
-    } else {
-      $element['file_uri'] = array(
-        '#type' => 'hidden',
-        '#value' => $element['#file']->uri,
-        '#attributes' => array('class' => array('drupdown-resource')),
-      );
-    }
-  }
-  return $element;
-}
-
-function drupdown_text_format_process($element) {
-  if (array_key_exists('format', $element)) {
-    $formats = array_keys($element['format']['format']['#options']);
-    $style_settings = _drupdown_style_settings($formats);
-    drupal_add_js(array('drupdown' => array('styles' => $style_settings)), 'setting');
-  }
-  return $element;
-}
-
-function drupdown_textarea_process($element) {
-  if (array_key_exists('#ace_format', $element)) {
-    $format = $element['#ace_format'];
-    $style_settings = _drupdown_style_settings(array($format));
-    drupal_add_js(array('drupdown' => array('styles' => $style_settings)), 'setting');
-  }
-  return $element;
-}
-
-function _drupdown_style_settings($formats = array()) {
-  $style_settings = array();
-  foreach ($formats as $format_id) {
-    $filters = filter_list_format($format_id);
-    $style_settings[$format_id] = array();
-    foreach ($filters as $filter) {
-      if ($filter->name == 'filter_drupdown') {
-        foreach ($filter->settings['styles'] as $style) {
-          if ($style) {
-            $style_settings[$format_id][$style] = $style;
-          }
-        }
-      }
-    }
-  }
-  return $style_settings;
 }

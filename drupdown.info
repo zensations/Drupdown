@@ -1,5 +1,5 @@
 name = Drupdown
 description = Drupal flavored Markdown input filter.
-package = "Input filters"
+package = "Drupdown"
 core = 7.x
 files[] = drupdown.module

@@ -1,0 +1,16 @@
+<?php
+function drupdown_youtube_drupdown_url_patterns() {
+  $patterns['/(?:(?:youtube(?:.*?)[?&]v=)|(?:youtu\.be\/))([^&?]*)/'] = array(
+    'function' => 'drupdown_youtube_callback',
+    'weight' => 90,
+  );
+  return $patterns;
+}
+
+function drupdown_youtube_callback($text, $url, $settings, $matches) {
+  return '<iframe
+      class="drupdown-youtube"
+      src="https://www.youtube-nocookie.com/embed/' . $matches[1] . '"
+      frameborder="0"
+      allowfullscreen></iframe>';
+}

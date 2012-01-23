@@ -185,13 +185,11 @@ define 'drupdown/toolbar', ['require', 'exports', 'module'], (require, exports, 
           $('input', this).attr('checked', 'checked')
         files = []
 
-        formats = Drupal.settings.drupdown.styles[@format]
-        for file in ($(file).val() for file in $('.drupdown-resource'))
-          if file.match /^original:\/\//
-            $.each formats, (name, style) ->
+        formats = Drupal.settings.drupdown_images.styles[@format]
+        for file in ($(file).val() for file in $('.drupdown-embed-uri'))
+          $.each formats, (name, style) ->
+            if file.substring(0, style.length) == style
               files.push (file.replace(/^original:\/\//, style + '://'))
-          else
-            files.push file
 
         input = $('input[name=uri]', dialog)
         $(input).autocomplete({source: files, minlength:0, delay:0})

@@ -15,7 +15,6 @@ class DrupdownParser extends MarkdownExtra_Parser {
   }
 
 	function doEmbeds($text) {
-
 	#
 	# Turn Markdown link shortcuts into XHTML <a> tags.
 	#
@@ -27,7 +26,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 		#
 		$text = preg_replace_callback('{
 			(					# wrap whole match in $1
-        ([<>!])
+        ([\<\>\!])
 			  \[
 				('.$this->nested_brackets_re.')	# link text = $3
 			  \]
@@ -48,7 +47,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 		#
 		$text = preg_replace_callback('{
 			(			# wrap whole match in $1
-        ([<>!])
+        (\<|\>|!)
         \[
 				('.$this->nested_brackets_re.')	# link text = $3
 			  \]
@@ -79,7 +78,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 		#
 		$text = preg_replace_callback('{
 			(					# wrap whole match in $1
-        ([<>!])
+        ([\<\>\!])
 			  \[
 				([^\[\]]+)		# link text = $3; can\'t contain [ or ]
 			  \]
@@ -124,7 +123,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 		else {
 			$result = $whole_match;
 		}
-		return $result;
+		return $result . "\n\n";
 	}
 
 	function _doEmbeds_inline_callback($matches) {
@@ -143,7 +142,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 		$link_text = $this->runSpanGamut($link_text);
 
     $result = drupdown_process_reference($link_text, $url, $title, $modifier, $this->settings);
-		return $this->hashBlock($result);
+		return $this->hashBlock($result) . "\n\n";
 	}
 
   /**

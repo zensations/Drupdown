@@ -1,0 +1,6 @@
+name = Drupdown Images
+description = "Embed images into drupdown texts."
+package = "Drupdown"
+version = 0.1
+core = 7.x
+files[] = drupdown_images.module

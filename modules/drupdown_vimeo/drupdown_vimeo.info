@@ -1,0 +1,6 @@
+name = Drupdown Vimeo
+description = "Vimeo Embeds for drupdown."
+package = "Drupdown"
+version = 0.1
+core = 7.x
+files[] = drupdown_vimeo.module

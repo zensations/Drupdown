@@ -201,10 +201,10 @@
             return $('input', this).attr('checked', 'checked');
           });
           files = [];
-          formats = Drupal.settings.drupdown.styles[_this.format];
+          formats = Drupal.settings.drupdown_images.styles[_this.format];
           _ref = (function() {
             var _j, _len, _ref, _results;
-            _ref = $('.drupdown-resource');
+            _ref = $('.drupdown-embed-uri');
             _results = [];
             for (_j = 0, _len = _ref.length; _j < _len; _j++) {
               file = _ref[_j];
@@ -214,13 +214,11 @@
           })();
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             file = _ref[_i];
-            if (file.match(/^original:\/\//)) {
-              $.each(formats, function(name, style) {
+            $.each(formats, function(name, style) {
+              if (file.substring(0, style.length) === style) {
                 return files.push(file.replace(/^original:\/\//, style + '://'));
-              });
-            } else {
-              files.push(file);
-            }
+              }
+            });
           }
           input = $('input[name=uri]', dialog);
           $(input).autocomplete({

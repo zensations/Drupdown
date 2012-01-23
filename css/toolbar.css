@@ -1,46 +1,3 @@
-#drupdown-playground-output .formatted-output {
-  margin-top: 2em;
-  border: 2px dashed gray;
-  padding: 1em;
-}
-
-/* floating elements */
-.drupdown-left {
-  max-width: 50%;
-  float: left;
-  margin: 0em 1em 1em 0em;
-}
-
-.drupdown-right {
-  max-width: 50%;
-  float: right;
-  margin: 0em 0em 1em 1em;
-}
-
-.drupdown-center {
-  display: block;
-  margin: 1em auto;
-  text-align: center;
-}
-
-/* figure and caption */
-.drupdown-caption {
-  text-align: center;
-}
-
-/* table directions */
-.drupdown-table-right {
-  text-align: right;
-}
-
-.drupdown-table-left {
-  text-align: left;
-}
-
-.drupdown-table-center {
-  text-align: center;
-}
-
 .drupdown-float-options {
   width: 240px;
   margin: 0px auto;
@@ -59,13 +16,13 @@
 }
 
 .drupdown-float-options .icon-float-left {
-  background: url(images/float_left.png);
+  background: url(../images/float_left.png);
 }
 .drupdown-float-options .icon-float-right {
-  background: url(images/float_right.png);
+  background: url(../images/float_right.png);
 }
 .drupdown-float-options .icon-float-center {
-  background: url(images/center.png);
+  background: url(../images/center.png);
 }
 
 .drupdown-float-options .column {

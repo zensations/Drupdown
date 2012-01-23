@@ -41,8 +41,9 @@ define('drupdown/highlight', ['require', 'exports', 'module' , 'ace/lib/oop', 'a
                 token : function(value) {
                     return "markup.heading." + value.length;
                 },
-                regex : "^#{1,6}"
-            }, github_embed("javascript", "js-"),
+                regex : "^#{1,6}.*$"
+            },
+            github_embed("javascript", "js-"),
             github_embed("xml", "xml-"),
             github_embed("html", "html-"),
             github_embed("css", "css-"),
@@ -55,14 +56,26 @@ define('drupdown/highlight', ['require', 'exports', 'module' , 'ace/lib/oop', 'a
                 regex : "^[<>!][ ].+$",
                 next  : "blockquote"
             }, { // reference
-                token : ["text", "constant", "text", "url", "string", "text"],
+                token : ["text", "string", "text", "support.function", "string", "text"],
                 regex : "^([ ]{0,3}\\[)([^\\]]+)(\\]:\\s*)([^ ]+)(\\s*(?:[\"][^\"]+[\"])?\\s*)$"
             }, { // link by reference
-                token : ["text", "string", "text", "constant", "text"],
+                token : ["text", "string", "text", "support.function", "text"],
                 regex : "(\\[)((?:[[^\\]]*\\]|[^\\[\\]])*)(\\][ ]?(?:\\n[ ]*)?\\[)(.*?)(\\])"
+            }, { // simple reference
+                token : ["text", "string", "text"],
+                regex : "(\\[)((?:[[^\\]]*\\]|[^\\[\\]])*)(\\])"
             }, { // link by url
-                token : ["text", "string", "text", "markup.underline", "string", "text"],
+                token : ["text", "string", "text"],
                 regex : "(\\[)"+
+                    "(\\[[^\\]]*\\]|[^\\[\\]]*)"+
+                    "(\\]\\([ \\t]*)"+
+                    "(<?(?:(?:[^\\(]*?\\([^\\)]*?\\)\\S*?)|(?:.*?))>?)"+
+                    "((?:[ \t]*\"(?:.*?)\"[ \\t]*)?)"+
+                    "(\\))"
+            }, { // embed
+                token : ["markup.list", "markup.list", "string", "markup.list", "support.function", "string", "markup.list"],
+                regex : "([<>!])" +
+                    "(\\[)"+
                     "(\\[[^\\]]*\\]|[^\\[\\]]*)"+
                     "(\\]\\([ \\t]*)"+
                     "(<?(?:(?:[^\\(]*?\\([^\\)]*?\\)\\S*?)|(?:.*?))>?)"+
