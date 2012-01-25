@@ -3,6 +3,7 @@ function drupdown_images_drupdown_url_patterns() {
   $patterns['/^(.*?)(\:\/\/?).*\.(png|jpg|jpeg|gif)$/i'] = array(
     'function' => 'drupdown_image_callback',
     'weight' => 90,
+    'classes' => array('drupdown-image'),
   );
   return $patterns;
 }

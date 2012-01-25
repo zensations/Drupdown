@@ -3,6 +3,7 @@ function drupdown_picasa_drupdown_url_patterns() {
   $patterns['/picasaweb\.google\.com\/(.+?)\/([^?&]+)/'] = array(
     'function' => 'drupdown_picasa_gallery_callback',
     'weight' => 90,
+    'classes' => array('drupdown-picasa-gallery'),
   );
   return $patterns;
 }

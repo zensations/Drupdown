@@ -74,6 +74,7 @@ function drupdown_filter_info() {
     'process callback' => '_drupdown_process',
     'settings callback' => '_drupdown_settings',
     'default settings' => array('styles' => array()),
+    'cache' => FALSE, // TODO: more performant solution for drupal_insert module
   );
   return $filters;
 }
@@ -103,7 +104,7 @@ function _drupdown_process($text, $filter, $format, $langcode, $cache, $cache_id
 function drupdown_process_reference($text, $url, $title, $modifier, $settings) {
   // remove leading slashes
   $url = preg_replace('/^\//', '', $url);
-  $classes = array(
+  $floatmap = array(
     '!' => 'center',
     '>' => 'right',
     '<' => 'left',
@@ -119,7 +120,8 @@ function drupdown_process_reference($text, $url, $title, $modifier, $settings) {
         return theme('figure', array(
           'content' => $result,
           'caption' => $title,
-          'float' => $classes[$modifier],
+          'float' => $floatmap[$modifier],
+          'classes' => array_key_exists('classes', $callback)?$callback['classes']:array(),
         ));
         return $result;
       }
@@ -131,7 +133,6 @@ function drupdown_get_url_patterns() {
   if ($cache = cache_get('drupdown_url_patterns')) {
     return $cache->data;
   }
-  drupal_set_message('Recreating patterns.');
   $patterns = module_invoke_all('drupdown_url_patterns');
   drupal_alter('drupdown_url_patterns', $patterns);
   uasort($patterns, 'drupal_sort_weight');
@@ -144,6 +145,7 @@ function drupdown_drupdown_url_patterns() {
   $patterns['/.*/'] = array(
     'function' => 'drupdown_link_callback',
     'weight' => 100,
+    'classes' => array('drupdown-link'),
   );
   return $patterns;
 }
@@ -156,18 +158,21 @@ function drupdown_theme() {
         'content' => FALSE,
         'caption' => FALSE,
         'float' => 'center',
+        'classes' => array(),
       ),
     ),
   );
 }
 
 function theme_figure($variables) {
+  $variables['classes'][] = 'drupdown-figure';
   $caption = FALSE;
   if (strlen($variables['caption']) > 0) {
     $caption = $variables['caption'];
+    $variables['classes'][] = 'drupdown-captioned';
   }
   $content = '<div class="drupdown-figure-wrapper drupdown-' . $variables['float'] . '">'
-    .'<div class="drupdown-figure' . ($caption?' drupdown-with-caption':'') . '">'
+    .'<div class="' . implode(' ', $variables['classes']) . '">'
     .'<div class="drupdown-figure-content">' . $variables['content'] . '</div>';
   if ($caption) {
     $content .= '<div class="drupdown-caption">' . $caption . '</div>';

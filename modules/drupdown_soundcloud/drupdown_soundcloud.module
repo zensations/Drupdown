@@ -3,6 +3,7 @@ function drupdown_soundcloud_drupdown_url_patterns() {
   $patterns['/soundcloud\.com\//'] = array(
     'function' => 'drupdown_soundcloud_callback',
     'weight' => 90,
+    'classes' => array('drupdown-soundcloud'),
   );
   return $patterns;
 }
