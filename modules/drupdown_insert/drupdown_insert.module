@@ -2,17 +2,17 @@
 function drupdown_insert_drupdown_url_patterns() {
   $patterns['/^block:\/\/(.*?)\/(.*?)$/'] = array(
     'function' => 'drupdown_insert_block_callback',
-    'weight' => 80,
+    'weight' => 90,
     'classes' => array('drupdown-insert', 'drupdown-block'),
   );
   $patterns['/^views:\/\/(.*?)\/(.*?)(?:\/(.*?))?$/'] = array(
     'function' => 'drupdown_insert_view_callback',
-    'weight' => 80,
+    'weight' => 90,
     'classes' => array('drupdown-insert', 'drupdown-view'),
   );
-  $patterns['/^(.*?):\/\/(.*?)\/(.*?)\/(.*?)$/'] = array(
+  $patterns['/^(.*?):\/\/(.*?)\/(.*?)$/'] = array(
     'function' => 'drupdown_insert_entity_callback',
-    'weight' => 85,
+    'weight' => 95,
     'classes' => array('drupdown-insert', 'drupdown-view'),
   );
   return $patterns;
@@ -30,7 +30,7 @@ function drupdown_insert_block_callback($text, $url, $settings, $matches) {
 }
 
 function drupdown_insert_view_callback($text, $url, $settings, $matches) {
-  drupal_set_message('inserting view');
+  drupal_theme_initialize();
   $view_name = $matches[1];
   $display_id = $matches[2];
   $args = @$matches[3]?$matches[3]:'';
@@ -69,5 +69,20 @@ function drupdown_insert_view_callback($text, $url, $settings, $matches) {
 }
 
 function drupdown_insert_entity_callback($text, $url, $settings, $matches) {
-  dpm($matches);
+  drupal_theme_initialize();
+  $entity_type = $matches[1];
+  $view_mode = $matches[2];
+  $entity_id = $matches[3];
+  $info = entity_get_info($entity_type);
+  $content = '';
+  if (array_key_exists($view_mode, $info['view modes'])
+    && array_key_exists('view callback', $info)) {
+    global $language;
+    $entities = entity_load($entity_type, array($entity_id));
+    $content = drupal_render(call_user_func($info['view callback'], $entities, $view_mode, 0, $language->language));
+  }
+  if (empty($content)) {
+    $content = '<div class="drupdown-entity-empty">' . t('Entity empty.') . '</div>';
+  }
+  return $content;
 }
