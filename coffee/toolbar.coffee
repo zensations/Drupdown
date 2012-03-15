@@ -142,7 +142,7 @@ define 'drupdown/toolbar', ['require', 'exports', 'module'], (require, exports, 
         text = @editor.getSession().doc.getTextRange(range)
         dialog = $("""
           <div title="#{Drupal.t('Insert Link')}" class="drupdown-dialog">
-           ')label for="text">#{Drupal.t('Link text')}</label>
+            <label for="text">#{Drupal.t('Link text')}</label>
             <input type="text" name="text" class="ui-widget-content ui-corner-all" value="#{text}"/>
             <label for="title">#{Drupal.t('Link title')}</label>
             <input type="text" name="title" class="ui-widget-content ui-corner-all" value="#{text}"/>

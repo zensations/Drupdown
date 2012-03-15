@@ -169,7 +169,7 @@
           var dialog, range, text;
           range = _this.editor.getSelectionRange();
           text = _this.editor.getSession().doc.getTextRange(range);
-          dialog = $("<div title=\"" + (Drupal.t('Insert Link')) + "\" class=\"drupdown-dialog\">\n ')label for=\"text\">" + (Drupal.t('Link text')) + "</label>\n  <input type=\"text\" name=\"text\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"title\">" + (Drupal.t('Link title')) + "</label>\n  <input type=\"text\" name=\"title\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"uri\">" + (Drupal.t('Web address')) + "</label>\n  <input type=\"text\" name=\"uri\" class=\"ui-widget-content ui-corner-all\" value=\"\"/>\n</div>").dialog({
+          dialog = $("<div title=\"" + (Drupal.t('Insert Link')) + "\" class=\"drupdown-dialog\">\n  <label for=\"text\">" + (Drupal.t('Link text')) + "</label>\n  <input type=\"text\" name=\"text\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"title\">" + (Drupal.t('Link title')) + "</label>\n  <input type=\"text\" name=\"title\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"uri\">" + (Drupal.t('Web address')) + "</label>\n  <input type=\"text\" name=\"uri\" class=\"ui-widget-content ui-corner-all\" value=\"\"/>\n</div>").dialog({
             modal: true,
             show: 'fade',
             hide: 'fade',
