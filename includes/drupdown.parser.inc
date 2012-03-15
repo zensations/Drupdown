@@ -148,20 +148,20 @@ class DrupdownParser extends MarkdownExtra_Parser {
   /**
    * Remove h1, start at h2 instead.
    */
-	function _doHeaders_callback_setext($matches) {
-		# Terrible hack to check we haven't found an empty list item.
-		if ($matches[2] == '-' && preg_match('{^-(?: |$)}', $matches[1]))
-			return $matches[0];
-		
-		$level = $matches[3]{0} == '=' ? 2 : 3;
-		$block = "<h$level>".$this->runSpanGamut($matches[1])."</h$level>";
-		return "\n" . $this->hashBlock($block) . "\n\n";
-	}
-	function _doHeaders_callback_atx($matches) {
-		$level = strlen($matches[1]) + 1;
-		$block = "<h$level>".$this->runSpanGamut($matches[2])."</h$level>";
-		return "\n" . $this->hashBlock($block) . "\n\n";
-	}
+  function _doHeaders_callback_setext($matches) {
+    if ($matches[3] == '-' && preg_match('{^- }', $matches[1]))
+      return $matches[0];
+    $level = $matches[3]{0} == '=' ? 2 : 3;
+    $attr  = $this->_doHeaders_attr($id =& $matches[2]);
+    $block = "<h$level$attr>".$this->runSpanGamut($matches[1])."</h$level>";
+    return "\n" . $this->hashBlock($block) . "\n\n";
+  }
+  function _doHeaders_callback_atx($matches) {
+    $level = strlen($matches[1]) + 1;
+    $attr  = $this->_doHeaders_attr($id =& $matches[3]);
+    $block = "<h$level$attr>".$this->runSpanGamut($matches[2])."</h$level>";
+    return "\n" . $this->hashBlock($block) . "\n\n";
+  }
   /**
    * Override list behavior. "+" creates ordered lists now.
    */
