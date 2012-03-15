@@ -11,7 +11,8 @@ function drupdown_images_drupdown_url_patterns() {
 function drupdown_images_file_element_process($element) {
   if (array_key_exists('#file', $element) && is_object($element['#file'])) {
     if (in_array('image_field_widget_process', $element['#process'])) {
-      $styles = array('original') + array_keys(image_styles());
+      $styles = array_keys(image_styles());
+      $styles[] = 'original';
       foreach ($styles as $style) {
         $element['drupdown_embed_' . $style] = array(
           '#type' => 'hidden',
