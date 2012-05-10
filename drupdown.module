@@ -18,7 +18,6 @@ function drupdown_menu() {
  * Implements hook_init().
  */
 function drupdown_init() {
-  drupdown_get_url_patterns();
   drupal_add_css(drupal_get_path('module', 'drupdown') . '/css/drupdown.css');
 }
 
