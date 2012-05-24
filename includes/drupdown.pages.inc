@@ -1,10 +1,12 @@
 <?php
-
 /**
  * Page callback for a simple playground form for trying out drupdown.
  */
 function drupdown_playground($form, &$form_state) {
-  $content = drupdown_to_html(@$form_state['values']['input'], array('styles' => array('original' => 'original', 'thumbnail' => 'thumbnail')));
+  module_load_include('inc', 'drupdown', 'includes/drupdown.parser');
+  $content = drupdown_process_blocks(@$form_state['values']['input'], array(
+    'styles' => array('original' => 'original', 'thumbnail' => 'thumbnail'),
+  ));
   $form = array(
     'input' => array(
       '#type' => 'textarea',
@@ -44,4 +46,3 @@ function drupdown_playground($form, &$form_state) {
 function drupdown_playground_callback($form, $form_state) {
   return $form['output'];
 }
-
