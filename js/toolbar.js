@@ -1,9 +1,4 @@
-(function() {
-  var $;
-
-  $ = jQuery;
-
-  define('drupdown/toolbar', ['require', 'exports', 'module'], function(require, exports, module) {
+define(['require', 'exports', 'module', 'jquery'], function(require, exports, module, $) {
     var DrupdownToolbar, Range;
     Range = require("ace/range").Range;
     DrupdownToolbar = (function() {
@@ -265,5 +260,3 @@
     })();
     exports.Toolbar = DrupdownToolbar;
   });
-
-}).call(this);

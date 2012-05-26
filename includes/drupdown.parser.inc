@@ -1,47 +1,4 @@
 <?php
-function drupdown_block_elements() {
-  if ($cache = cache_get('drupdown_block_elements')) {
-    return $cache->data;
-  }
-  $elements = module_invoke_all('drupdown_block_elements');
-  $elements['paragraph'] = array(
-    'label' => t('Paragraph'),
-    'pattern' => '/^(.+)$/',
-    'process' => '_drupdown_paragraph',
-    'weight' => 100,
-  );
-  $elements['heading'] = array(
-    'label' => t('Heading'),
-    'pattern' => '/^(#{1,6})\ (.*)$/',
-    'process' => '_drupdown_heading',
-    'weight' => 50,
-  );
-  uasort($elements, 'drupal_sort_weight');
-  cache_set('drupdown_block_elements', $elements);
-  return $elements;
-}
-
-function drupdown_span_elements() {
-  if ($cache = cache_get('drupdown_span_elements')) {
-    return $cache->data;
-  }
-  $elements = module_invoke_all('drupdown_span_elements');
-  $elements['emphasized'] = array(
-    'label' => t('Emphasized'),
-    'pattern' => '/\_(.*?)\_/',
-    'process' => '_drupdown_emphasized',
-    'weight' => 50,
-  );
-  $elements['strong'] = array(
-    'label' => t('Emphasized'),
-    'pattern' => '/\*(.*?)\*/',
-    'process' => '_drupdown_strong',
-    'weight' => 50,
-  );
-  uasort($elements, 'drupal_sort_weight');
-  cache_set('drupdown_span_elements', $elements);
-  return $elements;
-}
 
 function drupdown_process_blocks($input, $settings) {
   $result = '';
@@ -105,7 +62,7 @@ function _drupdown_heading($lines, $settings) {
   $content = '';
   foreach ($lines as $line) {
     $level = strlen($line[1]);
-    $text = drupdown_process_spans($line[2], $settings);
+    $text = drupdown_process_spans($line[3], $settings);
     $content .= "<h$level>$text</h$level>";
   }
   return $content;
@@ -115,10 +72,11 @@ function _drupdown_heading($lines, $settings) {
 // SPAN PROCESSORS
 // ======================================================================
 function _drupdown_emphasized($match, $settings) {
-  return '<em>' . $match[1] . '</em>';
+  return '<em>' . $match[2] . '</em>';
 }
+
 function _drupdown_strong($match, $settings) {
-  return '<strong>' . $match[1] . '</strong>';
+  return '<strong>' . $match[2] . '</strong>';
 }
 
 // ======================================================================
