@@ -24,77 +24,11 @@ function drupdown_requirejs_paths() {
 }
 
 /**
- * Retrieve all defined block elements.
- */
-function drupdown_block_elements() {
-  if (FALSE && $cache = cache_get('drupdown_block_elements')) {
-    return $cache->data;
-  }
-  $elements = module_invoke_all('drupdown_block_elements');
-  $elements['paragraph'] = array(
-    'label' => t('Paragraph'),
-    'pattern' => '/^(.+)$/',
-    'process' => '_drupdown_paragraph',
-    'weight' => 100,
-  );
-  $elements['heading'] = array(
-    'label' => t('Heading'),
-    'pattern' => '/^(#{1,6})(\s)(.*)$/',
-    'process' => '_drupdown_heading',
-    'token' => array('drupdown_operator', 'text', 'drupdown_heading'),
-    'weight' => 50,
-  );
-  uasort($elements, 'drupal_sort_weight');
-  cache_set('drupdown_block_elements', $elements);
-  return $elements;
-}
-
-/**
- * Retrieve all defined span elements.
- */
-function drupdown_span_elements() {
-  if (FALSE && $cache = cache_get('drupdown_span_elements')) {
-    return $cache->data;
-  }
-  $elements = module_invoke_all('drupdown_span_elements');
-  $elements['emphasized'] = array(
-    'label' => t('Emphasized'),
-    'pattern' => '/(\_)(.*?)(\_)/',
-    'process' => '_drupdown_emphasized',
-    'token' => array('drupdown_operator', 'drupdown_emphasized', 'drupdown_operator'),
-    'weight' => 50,
-  );
-  $elements['strong'] = array(
-    'label' => t('Emphasized'),
-    'pattern' => '/(\*)(.*?)(\*)/',
-    'process' => '_drupdown_strong',
-    'token' => array('drupdown_operator', 'drupdown_strong', 'drupdown_operator'),
-    'weight' => 50,
-  );
-  uasort($elements, 'drupal_sort_weight');
-  cache_set('drupdown_span_elements', $elements);
-  return $elements;
-}
-
-/**
  * Implements hook_init().
  */
 function drupdown_init() {
   drupal_add_css(drupal_get_path('module', 'drupdown') . '/css/drupdown.css');
   $rules = array();
-  $block = drupdown_block_elements();
-  $span = drupdown_span_elements();
-  foreach (array($block, $span) as $elements) {
-    foreach ($elements as $element) {
-      if (array_key_exists('token', $element)) {
-        $rules[] = array(
-          'token' => $element['token'],
-          'regex' => substr($element['pattern'], 1, -1),
-        );
-      }
-    }
-  }
-  drupal_add_js(array('drupdown' => array('rules' => $rules)), 'setting');
 }
 
 /**
@@ -120,12 +54,10 @@ function drupdown_ace_plugins_alter(&$plugins) {
   $plugins['modes']['drupdown/mode'] = array(
     'title' => 'Drupdown',
   );
-  $plugins['themes']['drupdown/theme'] = array(
-    'title' => 'Drupdown',
-    'class' => 'ace-drupdown',
+  $plugins['themes']['ace/theme/textmate'] = array(
     'attached' => array(
       'css' => array(
-        drupal_get_path('module', 'drupdown') . '/css/syntax.css',
+        drupal_get_path('module', 'drupdown') . '/themes/textmate.css',
       ),
     ),
   );
