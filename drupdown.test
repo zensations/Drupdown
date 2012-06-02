@@ -1,0 +1,43 @@
+<?php
+/**
+ * @file
+ * Drupdown unit tests.
+ */
+
+class DrupdownTestCase extends DrupalUnitTestCase {
+  /**
+   * Overrides DrupalUnitTestCase::getInfo().
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Drupdown Basic test case',
+      'description' => 'Test basic drupdown elements.',
+      'group' => 'Drupdown',
+    );
+  }
+
+  /**
+   * Overrides DrupalUnitTestCase::getInfo().
+   */
+  function setUp() {
+    drupal_load('module', 'drupdown');
+    module_load_include('inc', 'drupdown', 'includes/drupdown.parser');
+    parent::setup();
+  }
+
+  /**
+   * Test all test cases in drupdown/tests.
+   */
+  function testFiles() {
+    $testfiles = glob(drupal_get_path('module', 'drupdown') . '/tests/*.drupdown');
+    foreach ($testfiles as $file) {
+      $path = pathinfo($file);
+      $html_file = $path['dirname'] . '/' . $path['filename'] . '.html';
+      if (file_exists($html_file)) {
+        $drupdown = file_get_contents($file);
+        $html = file_get_contents($html_file);
+        $this->assertEqual(drupdown_process_blocks($drupdown, array()), $html);
+      }
+    }
+  }
+}

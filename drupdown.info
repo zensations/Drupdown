@@ -3,3 +3,4 @@ description = Drupal flavored Markdown input filter.
 package = "Drupdown"
 core = 7.x
 files[] = drupdown.module
+files[] = drupdown.test

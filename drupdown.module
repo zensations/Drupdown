@@ -5,7 +5,7 @@
 function drupdown_menu() {
   return array(
     'admin/config/content/drupdown' => array(
-      'title' => t('Drupdown Playground'),
+      'title' => 'Drupdown Playground',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('drupdown_playground'),
       'access arguments' => array('access administration pages'),
@@ -28,11 +28,10 @@ function drupdown_requirejs_paths() {
  */
 function drupdown_init() {
   drupal_add_css(drupal_get_path('module', 'drupdown') . '/css/drupdown.css');
-  $rules = array();
 }
 
 /**
- * Implements hook_theme();
+ * Implements hook_theme().
  */
 function drupdown_theme() {
   return array(

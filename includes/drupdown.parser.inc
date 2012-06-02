@@ -4,7 +4,7 @@
  * Retrieve all defined block elements.
  */
 function drupdown_block_elements() {
-  if (FALSE && $cache = cache_get('drupdown_block_elements')) {
+  if ($cache = cache_get('drupdown_block_elements')) {
     return $cache->data;
   }
   $elements = module_invoke_all('drupdown_block_elements');
@@ -29,7 +29,7 @@ function drupdown_block_elements() {
  * Retrieve all defined span elements.
  */
 function drupdown_span_elements() {
-  if (FALSE && $cache = cache_get('drupdown_span_elements')) {
+  if ($cache = cache_get('drupdown_span_elements')) {
     return $cache->data;
   }
   $elements = module_invoke_all('drupdown_span_elements');
@@ -43,6 +43,12 @@ function drupdown_span_elements() {
     'label' => t('Emphasized'),
     'pattern' => '/\*(.*?)\*/',
     'process' => '_drupdown_strong',
+    'weight' => 50,
+  );
+  $elements['strong_emphasized'] = array(
+    'label' => t('Emphasized'),
+    'pattern' => '/\*\*(.*?)\*\*|\_\_(.*?)\_\_/',
+    'process' => '_drupdown_strong_emphasized',
     'weight' => 50,
   );
   uasort($elements, 'drupal_sort_weight');
@@ -127,6 +133,11 @@ function _drupdown_emphasized($match, $settings) {
 
 function _drupdown_strong($match, $settings) {
   return '<strong>' . $match[1] . '</strong>';
+}
+
+function _drupdown_strong_emphasized($match, $settings) {
+  $text = strlen($match[1]) > 0 ? $match[1] : $match[2];
+  return '<strong><em>' . $text . '</em></strong>';
 }
 
 // ======================================================================
