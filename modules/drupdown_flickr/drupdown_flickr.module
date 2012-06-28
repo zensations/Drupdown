@@ -1,3 +1,71 @@
 <?php
-// TODO ...
+function drupdown_flickr_drupdown_url_patterns() {
+  $patterns['/flickr\.com\/photos\/(.*?)\/sets\/(.*?)\//'] = array(
+    'function' => 'drupdown_flickr_gallery_callback',
+    'weight' => 90,
+    'classes' => array('drupdown-gallery drupdown-flickr-gallery'),
+  );
+  return $patterns;
+}
 
+function drupdown_flickr_gallery_callback($text, $url, $settings, $matches) {
+  $api_key = variable_get('flickr_api_key', FALSE);
+  if (!$api_key) {
+    return "<p>" . t('No flickr api key set.') . "</p>";
+  }
+  //$fc172f4c4149a807
+  $user = $matches[1];
+  $set = $matches[2];
+  $url = "http://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=$api_key&photoset_id=$set&format=php_serial";
+  $result = drupal_http_request($url);
+  $images = array();
+  if ($result->data) {
+    $set = unserialize($result->data);
+    foreach ($set['photoset']['photo'] as $photo) {
+      $thumb = "http://farm{$photo['farm']}.staticflickr.com/{$photo['server']}/{$photo['id']}_{$photo['secret']}_s.jpg";
+      $large = "http://farm{$photo['farm']}.staticflickr.com/{$photo['server']}/{$photo['id']}_{$photo['secret']}_c.jpg";
+      $images[] = l(theme('image', array(
+        'path' => $thumb,
+        'title' => $photo['title'],
+      )), $large, array(
+        'attributes' => array(
+          'class' => array('colorbox'),
+          'rel' => $set['photoset']['id'],
+          'title' => $photo['title'],
+        ),
+        'html' => TRUE,
+      ));
+    }
+    return theme('item_list', array(
+      'attributes' => array(
+        'class' => 'drupdown-flickr-album',
+      ),
+      'items' => $images,
+    ));
+  } else {
+    return "<p>Empty photoset</p>";
+  }
+  return "<p>test</p>";
+}
+
+function drupdown_flickr_menu() {
+  $items = array(
+    'admin/config/media/flickr_api' => array(
+      'title' => t('Flickr API key'),
+      'description' => t('Set the flickr api key.'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('drupdown_flickr_settings'),
+      'access arguments' => array('access administration pages'),
+    ),
+  );
+  return $items;
+}
+
+function drupdown_flickr_settings($form, &$form_state) {
+  $form['flickr_api_key'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Flickr API key',
+    '#default_value' => variable_get('flickr_api_key'),
+  );
+  return system_settings_form($form);
+}
