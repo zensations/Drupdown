@@ -1,0 +1,6 @@
+name = Drupdown Embeds
+description = Embeddable media.
+package = "Drupdown"
+core = 7.x
+dependencies[] = drupdown
+files[] = drupdown_embeds.module

@@ -1,0 +1,67 @@
+<?php
+/**
+ * @file
+ *   Basic HTML Elements.
+ */
+
+/**
+ * Implements hook_block_patterns().
+ */
+function drupdown_base_drupdown_block_patterns() {
+  $patterns = array();
+  $patterns['paragraph'] = array(
+    'label' => t('Paragraph'),
+    'pattern' => '/^[^\$\$\$].+$/m',
+    'process' => '_drupdown_paragraph',
+    'weight' => 100,
+  );
+  //$patterns['heading'] = array(
+    //'label' => t('Heading'),
+    //'pattern' => '/^(#{1,6})\s(.*)$/',
+    //'process' => '_drupdown_heading',
+    //'weight' => 50,
+  //);
+  return $patterns;
+}
+
+/**
+ * Implements hook_span_patterns().
+ */
+function drupdown_base_drupdown_span_patterns() {
+  $patterns = array();
+  $patterns['emphasized'] = array(
+    'label' => t('Emphasized'),
+    'pattern' => '/\_(.*?)\_/',
+    'process' => '_drupdown_emphasized',
+    'weight' => 50,
+  );
+  return $patterns;
+}
+
+// ======================================================================
+// BLOCK PROCESSORS
+// ======================================================================
+function _drupdown_paragraph($lines, $settings) {
+  $paragraph = array();
+  foreach ($lines as $line) {
+    $paragraph[] = drupdown_process_spans($line[1], $settings);
+  }
+  return '<p>' . implode('<br/>', $paragraph) . '</p>';
+}
+
+function _drupdown_heading($lines, $settings) {
+  $content = '';
+  foreach ($lines as $line) {
+    $level = strlen($line[1]);
+    $text = drupdown_process_spans($line[2], $settings);
+    $content .= "<h$level>$text</h$level>";
+  }
+  return $content;
+}
+
+// ======================================================================
+// SPAN PROCESSORS
+// ======================================================================
+function _drupdown_emphasized($match, $settings) {
+  return '<em>' . $match[1] . '</em>';
+}

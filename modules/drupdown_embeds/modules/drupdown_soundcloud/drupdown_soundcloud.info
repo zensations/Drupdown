@@ -3,4 +3,5 @@ description = "Soundcloud Embeds for drupdown."
 package = "Drupdown"
 version = 0.1
 core = 7.x
+dependencies[] = drupdown_embeds
 files[] = drupdown_soundcloud.module

@@ -1,0 +1,47 @@
+<?php
+// ======================================================================
+// EMBEDDED REFERENCES
+// ======================================================================
+function drupdown_process_reference($text, $url, $title, $modifier, $settings) {
+  // remove leading slashes
+  $url = preg_replace('/^\//', '', $url);
+  $floatmap = array(
+    '!' => 'center',
+    '>' => 'right',
+    '<' => 'left',
+  );
+  $patterns = drupdown_get_url_patterns();
+  foreach ($patterns as $pattern => $callback) {
+    if (preg_match($pattern, $url, $matches)) {
+      if (array_key_exists('file', $callback)) {
+        include_once $callback['file'];
+      }
+      $result = call_user_func_array($callback['function'], array($text, $url, $settings, $matches));
+      if (strlen($result) > 0) {
+        return theme('figure', array(
+          'content' => $result,
+          'caption' => $title,
+          'float' => $floatmap[$modifier],
+          'classes' => array_key_exists('classes', $callback)?$callback['classes']:array(),
+        ));
+        return $result;
+      }
+    }
+  }
+}
+
+function drupdown_get_url_patterns() {
+  if ($cache = cache_get('drupdown_url_patterns')) {
+    return $cache->data;
+  }
+  $patterns = module_invoke_all('drupdown_url_patterns');
+  $patterns['/.*/'] = array(
+    'function' => 'drupdown_link_callback',
+    'weight' => 100,
+    'classes' => array('drupdown-link'),
+  );
+  drupal_alter('drupdown_url_patterns', $patterns);
+  uasort($patterns, 'drupal_sort_weight');
+  cache_set('drupdown_url_patterns', $patterns);
+  return $patterns;
+}

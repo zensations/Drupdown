@@ -1,0 +1,6 @@
+name = Drupdown Base
+description = Basic HTML elements.
+package = "Drupdown"
+core = 7.x
+dependencies[] = drupdown
+files[] = drupdown_base.module

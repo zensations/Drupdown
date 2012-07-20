@@ -4,9 +4,8 @@
  */
 function drupdown_playground($form, &$form_state) {
   module_load_include('inc', 'drupdown', 'includes/drupdown.parser');
-  $content = drupdown_process_blocks(@$form_state['values']['input'], array(
-    'styles' => array('original' => 'original', 'thumbnail' => 'thumbnail'),
-  ));
+  $parser = new DrupdownParser();
+  $content = $parser->parse(@$form_state['values']['input']);
   $form = array(
     'input' => array(
       '#type' => 'textarea',

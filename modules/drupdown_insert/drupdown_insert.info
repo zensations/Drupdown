@@ -1,6 +1,0 @@
-name = Drupdown Insert
-description = "Embed blocks, nodes and views into drupdown texts."
-package = "Drupdown"
-version = 0.1
-core = 7.x
-files[] = drupdown_insert.module

@@ -3,4 +3,5 @@ description = "Flickr embeds for drupdown."
 package = "Drupdown"
 version = 0.1
 core = 7.x
-files[] = drupdown_picasa.module
+dependencies[] = drupdown_embeds
+files[] = drupdown_flickr.module
