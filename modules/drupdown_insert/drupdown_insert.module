@@ -75,7 +75,7 @@ function drupdown_insert_entity_callback($text, $url, $settings, $matches) {
   $entity_id = $matches[3];
   $info = entity_get_info($entity_type);
   $content = '';
-  if (array_key_exists($view_mode, $info['view modes'])
+  if (!empty($info['view modes']) && array_key_exists($view_mode, $info['view modes'])
     && array_key_exists('view callback', $info)) {
     global $language;
     $entities = entity_load($entity_type, array($entity_id));

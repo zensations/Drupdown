@@ -54,7 +54,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
 			  \(			# literal paren
 				[ \n]*
 				(?:
-					<(.+?)>	# href = $4
+					(.+?)	# href = $4
 				|
 					('.$this->nested_url_parenthesis_re.')	# href = $5
 				)
