@@ -12,6 +12,5 @@ function drupdown_youtube_callback($text, $url, $settings, $matches) {
   return '<iframe
       class="drupdown-youtube"
       src="https://www.youtube-nocookie.com/embed/' . $matches[1] . '"
-      frameborder="0"
-      allowfullscreen></iframe>';
+      ></iframe>';
 }
