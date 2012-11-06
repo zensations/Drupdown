@@ -36,19 +36,11 @@
           }
         }
         lines[row] = lines[row].replace(/^#+[ ]/, '');
-        switch (level) {
-          case 1:
-          case 2:
-            underline = lines[row].replace(/./g, level - 1 ? '-' : '=');
-            lines.splice(row + 1, 0, underline);
-            break;
-          default:
-            signs = '';
-            while (--level) {
-              signs += '#';
-            }
-            lines[row] = signs + ' ' + lines[row];
+        signs = '';
+        while (--level >= 0) {
+          signs += '#';
         }
+        lines[row] = signs + ' ' + lines[row];
         return session.replace(new Range(from, 0, to, to_column), lines.join('\n'));
       };
 
@@ -91,10 +83,10 @@
       DrupdownToolbar.prototype.render = function() {
         var blocks, headingbutton, headings, i, lists, styles,
           _this = this;
-        headings = $('<span></span>');
+        headings = $('<ul></ul>');
         headingbutton = function(i) {
           var button;
-          return button = $("<button>H" + i + "</button>").button().click(function() {
+          return button = $('<li><a href="#">H' + i + '</a></li>').click(function() {
             _this.header(i);
             return false;
           });
@@ -102,44 +94,32 @@
         for (i = 1; i <= 5; i++) {
           headings.append(headingbutton(i));
         }
-        headings.buttonset().appendTo(this.element);
-        styles = $('<span></span>');
-        $('<button><span style="font-weight:bold">B</span></button>').button().click(function() {
+        headings.appendTo(this.element);
+
+        styles = $('<ul></ul>');
+        $('<li><a href="#">B</a></li>').click(function() {
           _this.emphasize(2);
           return false;
         }).appendTo(styles);
-        $('<button><span style="font-style:italic">I</span></button>').button().click(function() {
+        $('<li><a href="#">I</a></li>').click(function() {
           _this.emphasize(1);
           return false;
         }).appendTo(styles);
-        styles.buttonset().appendTo(this.element);
-        lists = $('<span></span>');
-        $('<button>ul</button>').button({
-          text: false,
-          icons: {
-            primary: 'ui-icon-bullet'
-          }
-        }).click(function() {
+        styles.appendTo(this.element);
+
+        lists = $('<ul></ul>');
+        $('<li><a href="#">ul</a></li>').click(function() {
           _this.prefixLines('-');
           return false;
         }).appendTo(lists);
-        $('<button>ol</button>').button({
-          text: false,
-          icons: {
-            primary: 'ui-icon-check'
-          }
-        }).click(function() {
+        $('<li><a href="#">ol</a></li>').click(function() {
           _this.prefixLines('+');
           return false;
         }).appendTo(lists);
-        lists.buttonset().appendTo(this.element);
-        blocks = $('<span></span>');
-        $('<button>quote</button>').button({
-          text: false,
-          icons: {
-            primary: 'ui-icon-comment'
-          }
-        }).click(function() {
+        lists.appendTo(this.element);
+
+        blocks = $('<ul></ul>');
+        $('<li><a href="#">quote</a></li>').click(function() {
           var dialog;
           dialog = $("<div title=\"" + (Drupal.t('Choose position')) + "\">" + (_this.floatOptions()) + "</div>");
           $('.drupdown-float-options .column', dialog).click(function() {
@@ -160,12 +140,7 @@
           });
           return false;
         }).appendTo(blocks);
-        $('<button>link</button>').button({
-          text: false,
-          icons: {
-            primary: 'ui-icon-link'
-          }
-        }).click(function() {
+        $('<li><a href="#">link</a></li>').click(function() {
           var dialog, range, text;
           range = _this.editor.getSelectionRange();
           text = _this.editor.getSession().doc.getTextRange(range);
@@ -187,12 +162,8 @@
           });
           return false;
         }).appendTo(blocks);
-        $('<button>embed</button>').button({
-          text: false,
-          icons: {
-            primary: 'ui-icon-image'
-          }
-        }).click(function() {
+
+        $('<li><a href="#">embed</a></li>').click(function() {
           var dialog, file, files, formats, input, range, text, _i, _len, _ref;
           range = _this.editor.getSelectionRange();
           text = _this.editor.getSession().doc.getTextRange(range);
@@ -226,12 +197,7 @@
             minlength: 0,
             delay: 0
           });
-          $('.drupdown-resource-choose', dialog).button({
-            text: false,
-            icons: {
-              primary: 'ui-icon-search'
-            }
-          }).click(function() {
+          $('.drupdown-resource-choose', dialog).click(function() {
             $(input).autocomplete('search', ':');
             $(this).blur();
             $(input).focus();
@@ -257,7 +223,7 @@
           });
           return false;
         }).appendTo(blocks);
-        return blocks.buttonset().appendTo(this.element);
+        return blocks.appendTo(this.element);
       };
 
       return DrupdownToolbar;
