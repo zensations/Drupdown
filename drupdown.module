@@ -50,13 +50,11 @@ function drupdown_ace_plugins_alter(&$plugins) {
   $plugins['toolbars']['drupdown/toolbar'] = array(
     'title' => 'Drupdown',
     'attached' => array(
+      'js' => array(
+        drupal_get_path('module', 'drupdown') . '/js/toolbar.js',
+      ),
       'css' => array(
         drupal_get_path('module', 'drupdown') . '/css/toolbar.css',
-      ),
-      'library' => array(
-        array('system', 'ui.dialog'),
-        array('system', 'ui.autocomplete'),
-        array('system', 'effects.fade'),
       ),
     ),
   );
