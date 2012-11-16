@@ -1,20 +1,10 @@
-(function() {
-  var $;
-
-  $ = jQuery;
-
-  define('drupdown/toolbar', ['require', 'exports', 'module'], function(require, exports, module) {
-    var DrupdownToolbar, Range;
-    Range = require("ace/range").Range;
-    DrupdownToolbar = (function() {
-
-      function DrupdownToolbar(element, editor, format) {
-        this.element = element;
-        this.editor = editor;
-        this.format = format;
-      }
-
-      DrupdownToolbar.prototype.header = function(level) {
+(function($) {
+  define('drupdown/toolbar', ['exports'], function(require, exports) {
+    var Toolbar = function() {};
+    require('ace/lib/oop').inherits(Toolbar, require('drupal/ace/toolbar/default').Toolbar);
+    (function() {
+      var Range = require("ace/range").Range;
+      this.header = function(level) {
         var from, lines, pos, row, session, signs, to, to_column, underline;
         session = this.editor.getSession();
         pos = this.editor.getCursorPosition().row;
@@ -52,7 +42,7 @@
         return session.replace(new Range(from, 0, to, to_column), lines.join('\n'));
       };
 
-      DrupdownToolbar.prototype.emphasize = function(level) {
+      this.emphasize = function(level) {
         var i, range, session, signs;
         session = this.editor.getSession();
         signs = '';
@@ -69,7 +59,7 @@
         return this.editor.clearSelection();
       };
 
-      DrupdownToolbar.prototype.prefixLines = function(sign) {
+      this.prefixLines = function(sign) {
         var i, lines, range, session, to, _ref;
         session = this.editor.getSession();
         range = this.editor.getSelectionRange();
@@ -82,188 +72,212 @@
         return this.editor.clearSelection();
       };
 
-      DrupdownToolbar.prototype.floatOptions = function() {
-        return '<div class="drupdown-float-options clearfix">\n  <div class="column">\n    <div class="icon-float-left">Left</div>\n    <input type="radio" name="position" value="<"/>\n  </div>\n  <div class="column">\n    <div class="icon-float-center">Center</div>\n    <input type="radio" name="position" value="!" checked/>\n  </div>\n  <div class="column">\n    <div class="icon-float-right">Right</div>\n    <input type="radio" name="position" value=">"/>\n  </div>\n</div>';
+      this.floatOptions = function() {
+        return $([
+        '<div class="drupdown-float-options">',
+          '<div class="column">',
+            '<label class="icon-float-left" for="left"><span>Left</span></label>',
+            '<input type="radio" name="position" id="left" value="<"/>',
+          '</div>',
+          '<div class="column">',
+            '<label class="icon-float-center" for="center"><span>Center</span></label>',
+            '<input type="radio" name="position" id="center" value="!" checked/>',
+          '</div>',
+          '<div class="column">',
+            '<label class="icon-float-right" for="right"><span>Right</span></label>',
+            '<input type="radio" name="position" id="right" value=">"/>',
+          '</div>',
+        '</div>'].join(''));
       };
 
-      DrupdownToolbar.prototype.processQuote = function() {};
+      this.embedOptions = function(text) {
+        return $([
+          '<div class="drupdown-ref-options">',
+            '<label for="text">' + (Drupal.t('Link text')) + '</label>',
+            '<input type="text" name="text" class="form-text" value="' + text + '"/>',
+            '<label for="title">' + (Drupal.t('Link title')) + '</label>',
+            '<input type="text" name="title" class="form-text" value="' + text + '"/>',
+            '<label for="uri">' + (Drupal.t('Web address')) + '</label>',
+            '<input type="text" name="uri" class="form-text" value=""/>',
+          '</div>'
+        ].join(''));
+      };
 
-      DrupdownToolbar.prototype.render = function() {
-        var blocks, headingbutton, headings, i, lists, styles,
-          _this = this;
-        headings = $('<span></span>');
-        headingbutton = function(i) {
-          var button;
-          return button = $("<button>H" + i + "</button>").button().click(function() {
-            _this.header(i);
-            return false;
-          });
-        };
-        for (i = 1; i <= 5; i++) {
-          headings.append(headingbutton(i));
+      this.imageOptions = function() {
+        var $form = $([
+          '<div class="drupdown-image-options">',
+            '<label for="format">' + Drupal.t('Format') + '</label>',
+            '<select name="format" id="format"></select>',
+            '<label for="file">' + Drupal.t('Image') + '</label>',
+            '<select name="file" id="file"></select>',
+          '</div>'
+        ].join(''));
+
+        var files = [];
+        $('.drupdown-embed-uri').each(function(){
+          files.push($(this).val());
+        });
+
+        var formats = Drupal.settings.drupdown_images.styles[this.format];
+        var $formats = $('#format', $form);
+        $.each(formats, function(name, style) {
+          $formats.append(['<option value="' + name + '">', name, '</option>'].join(''));
+        });
+
+        var $files = $('#file', $form);
+        for (var i in files) {
+          $files.append([
+            '<option value="' + files[i] + '">',
+            files[i].replace(/(.*\/)/, ''),
+            '</option>'
+          ].join(''));
         }
-        headings.buttonset().appendTo(this.element);
-        styles = $('<span></span>');
-        $('<button><span style="font-weight:bold">B</span></button>').button().click(function() {
-          _this.emphasize(2);
-          return false;
-        }).appendTo(styles);
-        $('<button><span style="font-style:italic">I</span></button>').button().click(function() {
-          _this.emphasize(1);
-          return false;
-        }).appendTo(styles);
-        styles.buttonset().appendTo(this.element);
-        lists = $('<span></span>');
-        $('<button>ul</button>').button({
-          text: false,
-          icons: {
-            primary: 'ui-icon-bullet'
-          }
-        }).click(function() {
-          _this.prefixLines('-');
-          return false;
-        }).appendTo(lists);
-        $('<button>ol</button>').button({
-          text: false,
-          icons: {
-            primary: 'ui-icon-check'
-          }
-        }).click(function() {
-          _this.prefixLines('+');
-          return false;
-        }).appendTo(lists);
-        lists.buttonset().appendTo(this.element);
-        blocks = $('<span></span>');
-        $('<button>quote</button>').button({
-          text: false,
-          icons: {
-            primary: 'ui-icon-comment'
-          }
-        }).click(function() {
-          var dialog;
-          dialog = $("<div title=\"" + (Drupal.t('Choose position')) + "\">" + (_this.floatOptions()) + "</div>");
-          $('.drupdown-float-options .column', dialog).click(function() {
-            return $('input', this).attr('checked', 'checked');
+        return $form;
+      };
+
+      this.buttons = function() {
+        var buttons = [];
+        // Add buttons for headings 1-5
+        var that = this;
+        var headings = [];
+        for (i = 1; i <= 5; i++) {
+          headings.push({
+            title: 'H' + i,
+            class: 'heading heading-' + i,
+            description: Drupal.t('Insert heading level !level.',{
+              '!level': i
+            }),
+            callback: function(level) {
+              that.header(level);
+            },
+            arguments: [i+1]
           });
-          dialog.dialog({
-            modal: true,
-            show: 'fade',
-            hide: 'fade',
-            buttons: {
-              'OK': function() {
-                var sign;
-                sign = $('input[name=position]:checked', dialog).val();
-                _this.prefixLines(sign);
-                return dialog.dialog('close');
-              }
+        }
+        buttons.push({
+          title: Drupal.t('Headings'),
+          class: 'headings',
+          children: headings
+        });
+
+        // Add buttons for emphasized and strong emphasized.
+        buttons.push({
+          title: Drupal.t('Accentuations'),
+          class: 'accentuations',
+          children: [{
+            title: Drupal.t('I'),
+            class: 'emphasized',
+            description: Drupal.t('Emphasize text.'),
+            callback: function() {
+              that.emphasize(1);
             }
-          });
-          return false;
-        }).appendTo(blocks);
-        $('<button>link</button>').button({
-          text: false,
-          icons: {
-            primary: 'ui-icon-link'
-          }
-        }).click(function() {
-          var dialog, range, text;
-          range = _this.editor.getSelectionRange();
-          text = _this.editor.getSession().doc.getTextRange(range);
-          dialog = $("<div title=\"" + (Drupal.t('Insert Link')) + "\" class=\"drupdown-dialog\">\n  <label for=\"text\">" + (Drupal.t('Link text')) + "</label>\n  <input type=\"text\" name=\"text\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"title\">" + (Drupal.t('Link title')) + "</label>\n  <input type=\"text\" name=\"title\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"uri\">" + (Drupal.t('Web address')) + "</label>\n  <input type=\"text\" name=\"uri\" class=\"ui-widget-content ui-corner-all\" value=\"\"/>\n</div>").dialog({
-            modal: true,
-            show: 'fade',
-            hide: 'fade',
-            buttons: {
-              'OK': function() {
-                var link, title, uri;
-                text = $('input[name=text]', dialog).val();
-                title = $('input[name=title]', dialog).val();
-                uri = $('input[name=uri]', dialog).val();
-                link = "[" + text + "](" + uri + " \"" + title + "\")";
-                _this.editor.getSession().replace(range, link);
-                return dialog.dialog('close');
-              }
+          },{
+            title: Drupal.t('B'),
+            class: 'strong',
+            description: Drupal.t('Strongly emphasize text.'),
+            callback: function() {
+              that.emphasize(2);
             }
-          });
-          return false;
-        }).appendTo(blocks);
-        $('<button>embed</button>').button({
-          text: false,
-          icons: {
-            primary: 'ui-icon-image'
-          }
-        }).click(function() {
-          var dialog, file, files, formats, input, range, text, _i, _len, _ref;
-          range = _this.editor.getSelectionRange();
-          text = _this.editor.getSession().doc.getTextRange(range);
-          dialog = $("<div title=\"" + (Drupal.t('Insert Resource')) + "\" class=\"drupdown-dialog\">\n  " + (_this.floatOptions()) + "\n  <label for=\"text\">" + (Drupal.t('Alternative text')) + "</label>\n  <input type=\"text\" name=\"text\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"title\">" + (Drupal.t('Caption')) + "</label>\n  <input type=\"text\" name=\"title\" class=\"ui-widget-content ui-corner-all\" value=\"" + text + "\"/>\n  <label for=\"uri\">" + (Drupal.t('Web address')) + "</label>\n  <div class=\"drupdown-resource\">\n    <input type=\"text\" name=\"uri\" class=\"uri ui-widget-content ui-corner-all\" value=\"\"/>\n    <button class=\"drupdown-resource-choose\">Choose</button>\n  </div>\n</div>");
-          $('.drupdown-float-options .column', dialog).click(function() {
-            return $('input', this).attr('checked', 'checked');
-          });
-          files = [];
-          formats = Drupal.settings.drupdown_images.styles[_this.format];
-          _ref = (function() {
-            var _j, _len, _ref, _results;
-            _ref = $('.drupdown-embed-uri');
-            _results = [];
-            for (_j = 0, _len = _ref.length; _j < _len; _j++) {
-              file = _ref[_j];
-              _results.push($(file).val());
+          }]
+        });
+
+        // Add buttons for lists.
+        buttons.push({
+          title: Drupal.t('Lists'),
+          class: 'lists',
+          children: [{
+            title: Drupal.t('UL'),
+            class: 'unordered-list',
+            description: Drupal.t('Create an unordered list.'),
+            callback: function() {
+              that.prefixLines('-');
             }
-            return _results;
-          })();
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            file = _ref[_i];
-            $.each(formats, function(name, style) {
-              if (file.substring(0, style.length) === style) {
-                return files.push(file.replace(/^original:\/\//, style + '://'));
-              }
+          },{
+            title: Drupal.t('OL'),
+            class: 'ordered-list',
+            description: Drupal.t('Create an ordered list.'),
+            callback: function() {
+              that.prefixLines('+');
+            }
+          }]
+        });
+
+        // Quote button.
+        buttons.push({
+          title: Drupal.t('Quote'),
+          class: 'quote',
+          description: Drupal.t('Mark text as quoted and choose a floating direction.'),
+          callback: function() {
+            that.dialog(that.floatOptions(), function(values){
+              that.prefixLines(values['position']);
             });
           }
-          input = $('input[name=uri]', dialog);
-          $(input).autocomplete({
-            source: files,
-            minlength: 0,
-            delay: 0
-          });
-          $('.drupdown-resource-choose', dialog).button({
-            text: false,
-            icons: {
-              primary: 'ui-icon-search'
-            }
-          }).click(function() {
-            $(input).autocomplete('search', ':');
-            $(this).blur();
-            $(input).focus();
-            return false;
-          });
-          dialog.dialog({
-            modal: true,
-            show: 'fade',
-            hide: 'fade',
-            buttons: {
-              'OK': function() {
-                var link, sign, title, uri;
-                sign = $('input[name=position]:checked', dialog).val();
-                if (sign === '|') sign = '!';
-                text = $('input[name=text]', dialog).val();
-                title = $('input[name=title]', dialog).val();
-                uri = $('input[name=uri]', dialog).val();
-                link = "" + sign + "[" + text + "](" + uri + " \"" + title + "\")";
-                _this.editor.getSession().replace(range, link);
-                return dialog.dialog('close');
-              }
-            }
-          });
-          return false;
-        }).appendTo(blocks);
-        return blocks.buttonset().appendTo(this.element);
+        });
+
+        // Link button.
+        buttons.push({
+          title: Drupal.t('Hyperlink'),
+          class: 'hyperlink',
+          description: Drupal.t('Insert a hyperlink.'),
+          callback: function() {
+            var range = that.editor.getSelectionRange();
+            var text = that.editor.getSession().doc.getTextRange(range);
+            var $dialog = $('<div title="' + (Drupal.t('Insert Link')) + ':">');
+            $dialog.append(that.embedOptions(text));
+            that.dialog($dialog, function(values){
+              var link = "[" + values['text'] + "](" + values['uri'] + " \"" + values['title'] + "\")";
+              that.editor.getSession().replace(range, link);
+            });
+          }
+        });
+
+        // Images.
+        buttons.push({
+          title: Drupal.t('Image'),
+          class: 'image',
+          description: Drupal.t('Insert embedded media.'),
+          callback: function() {
+            var range = that.editor.getSelectionRange();
+            var text = that.editor.getSession().doc.getTextRange(range);
+            var $dialog = $('<div></div>')
+            $dialog.append(that.floatOptions());
+            $dialog.append(that.imageOptions());
+            that.dialog($dialog, function(values) {
+              var link = [
+                values['position'],
+                '[', text, ']',
+                '(',
+                  values['file'].replace(/^(.*\:\/\/)/, values['format'] + '://'),
+                ' "', text, '")'
+              ].join('');
+              that.editor.getSession().replace(range, link);
+            });
+          }
+        });
+
+        // Embeddables.
+        buttons.push({
+          title: Drupal.t('Media'),
+          class: 'media',
+          description: Drupal.t('Insert embedded media.'),
+          callback: function() {
+            var range = that.editor.getSelectionRange();
+            var text = that.editor.getSession().doc.getTextRange(range);
+            var $dialog = $('<div></div>')
+            $dialog.append(that.floatOptions());
+            $dialog.append(that.embedOptions(text));
+            that.dialog($dialog, function(values) {
+              var link = [
+                values['position'],
+                '[', values['text'], ']',
+                '(', values['uri'], ' "', values['title'], '")'
+              ].join('');
+              that.editor.getSession().replace(range, link);
+            });
+          }
+        });
+        return buttons;
       };
-
-      return DrupdownToolbar;
-
-    })();
-    exports.Toolbar = DrupdownToolbar;
+    }).call(Toolbar.prototype);
+    exports.Toolbar = Toolbar;
   });
-
-}).call(this);
+}(jQuery));

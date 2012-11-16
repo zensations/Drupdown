@@ -13,13 +13,11 @@ function drupdown_images_file_element_process($element) {
     if (in_array('image_field_widget_process', $element['#process'])) {
       $styles = array_keys(image_styles());
       $styles[] = 'original';
-      foreach ($styles as $style) {
-        $element['drupdown_embed_' . $style] = array(
-          '#type' => 'hidden',
-          '#value' => str_replace('public://', $style.'://', $element['#file']->uri),
-          '#attributes' => array('class' => array('drupdown-embed-uri')),
-        );
-      }
+      $element['drupdown_embed'] = array(
+        '#type' => 'hidden',
+        '#value' => $element['#file']->uri,
+        '#attributes' => array('class' => array('drupdown-embed-uri')),
+      );
     }
   }
   return $element;
