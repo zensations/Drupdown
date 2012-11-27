@@ -1,6 +1,0 @@
-name = Drupdown Picasa
-description = "Picasa embeds for drupdown."
-package = "Drupdown"
-version = 0.1
-core = 7.x
-files[] = drupdown_picasa.module

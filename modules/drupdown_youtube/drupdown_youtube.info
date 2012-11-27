@@ -1,6 +1,0 @@
-name = Drupdown Youtube
-description = "Youtube Embeds for drupdown."
-package = "Drupdown"
-version = 0.1
-core = 7.x
-files[] = drupdown_youtube.module

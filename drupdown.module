@@ -1,17 +1,68 @@
 <?php
 /**
+ * @file
+ * Main drupdown implementation file.
+ */
+
+/**
  * Implements hook_menu().
  */
 function drupdown_menu() {
   return array(
     'drupdown/playground' => array(
-      'title' => t('Drupdown Playground'),
+      'title' => 'Drupdown Playground',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('drupdown_playground'),
       'access callback' => TRUE,
       'file' => 'includes/drupdown.pages.inc',
+      'type' => MENU_CALLBACK,
+    ),
+    'drupdown/ajax-embed' => array(
+      'title' => 'Drupdown Ajax Callback',
+      'page callback' => 'drupdown_ajax',
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
+    ),
+    'admin/config/content/drupdown' => array(
+      'title' => 'Drupdown',
+      'description' => t('Configure drupdown basics.'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('drupdown_settings_form'),
+      'access arguments' => array('administer site configuration'),
     ),
   );
+}
+
+/**
+ * Drupdown settings form.
+ */
+
+function drupdown_settings_form($form, &$form_state) {
+  $form['drupdown_flickr_api_key'] = array(
+    '#title' => t('Flickr API Key'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('drupdown_flickr_api_key', ''),
+  );
+  $form['drupdown_soundcloud_client_id'] = array(
+    '#title' => t('Soundcloud Client ID'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('drupdown_soundcloud_client_id', ''),
+  );
+  return system_settings_form($form);
+}
+
+/**
+ * Ajax callback to deliver inline html for embeddables.
+ */
+function drupdown_ajax() {
+  $info = drupdown_match_pattern($_GET['url']);
+  if (array_key_exists('file', $info)) {
+    include_once $info['file'];
+  }
+  $result = call_user_func_array($info['callback'], array(
+    $_GET['title'], $_GET['url'], $info['matches'],
+  ));
+  print $result;
 }
 
 /**
@@ -25,10 +76,13 @@ function drupdown_init() {
  * Processes an input string according to the settings provided.
  */
 function drupdown_to_html($input, $settings) {
-  module_load_include('inc', 'drupdown', 'includes/markdown');
-  module_load_include('inc', 'drupdown', 'includes/drupdown.parser');
-  $parser = new DrupdownParser($settings);
-  return $parser->transform($input);
+  if ($input) {
+    require_once libraries_get_path('php-markdown') . '/markdown.php';
+    module_load_include('inc', 'drupdown', 'includes/drupdown.parser');
+    $parser = new DrupdownParser($settings);
+    $input = $parser->transform($input);
+  }
+  return $input;
 }
 
 /**
@@ -51,15 +105,14 @@ function drupdown_ace_plugins_alter(&$plugins) {
     'title' => 'Drupdown',
     'attached' => array(
       'js' => array(
-        drupal_get_path('module', 'drupdown') . '/js/toolbar.js',
+        drupal_get_path('module', 'drupdown') . '/js/drupdown-toolbar.js',
       ),
       'css' => array(
-        drupal_get_path('module', 'drupdown') . '/css/toolbar.css',
+        drupal_get_path('module', 'drupdown') . '/css/drupdown-toolbar.css',
       ),
     ),
   );
 }
-
 
 /**
  * Implements hook_filter_info().
@@ -71,11 +124,13 @@ function drupdown_filter_info() {
     'process callback' => '_drupdown_process',
     'settings callback' => '_drupdown_settings',
     'default settings' => array('styles' => array()),
-    'cache' => FALSE, // TODO: more performant solution for drupal_insert module
   );
   return $filters;
 }
 
+/**
+ * Settings for callback.
+ */
 function _drupdown_settings($form, &$form_state, $filter, $format, $defaults, $filters) {
   $settings['styles'] = array(
     '#type' => 'checkboxes',
@@ -98,34 +153,49 @@ function _drupdown_process($text, $filter, $format, $langcode, $cache, $cache_id
   return drupdown_to_html($text, $filter->settings);
 }
 
-function drupdown_process_reference($text, $url, $title, $modifier, $settings) {
-  // remove leading slashes
-  $url = preg_replace('/^\//', '', $url);
-  $floatmap = array(
-    '!' => 'center',
-    '>' => 'right',
-    '<' => 'left',
-  );
+/**
+ * Find a pattern matching the url.
+ */
+function drupdown_match_pattern($url) {
   $patterns = drupdown_get_url_patterns();
-  foreach ($patterns as $pattern => $callback) {
-    if (preg_match($pattern, $url, $matches)) {
-      if (array_key_exists('file', $callback)) {
-        include_once $callback['file'];
-      }
-      $result = call_user_func_array($callback['function'], array($text, $url, $settings, $matches));
-      if (strlen($result) > 0) {
-        return theme('figure', array(
-          'content' => $result,
-          'caption' => $title,
-          'float' => $floatmap[$modifier],
-          'classes' => array_key_exists('classes', $callback)?$callback['classes']:array(),
-        ));
-        return $result;
-      }
+  foreach ($patterns as $id => $info) {
+    if (preg_match($info['pattern'], $url, $matches)) {
+      $info['matches'] = $matches;
+      $info['id'] = $id;
+      return $info;
     }
   }
+  return FALSE;
 }
 
+/**
+ * Process an url encountered.
+ */
+function drupdown_process_reference($text, $url, $title) {
+  $url = preg_replace('/^\//', '', $url);
+  $info = drupdown_match_pattern($url);
+  if (array_key_exists('file', $info)) {
+    include_once $info['file'];
+  }
+  $result = call_user_func_array($info['callback'], array(
+    $text, $url, $info['matches'],
+  ));
+  if (!is_array($info['classes'])) {
+    $info['classes'] = array();
+  }
+  if (strlen($result) > 0) {
+    return theme('figure', array(
+      'content' => $result,
+      'caption' => $title,
+      'classes' => $info['classes'] + array('drupdown-' . $info['id']),
+    ));
+  }
+  return '<em>Reference could not be processed.</em>';
+}
+
+/**
+ * Retrieve all defined url patterns.
+ */
 function drupdown_get_url_patterns() {
   if ($cache = cache_get('drupdown_url_patterns')) {
     return $cache->data;
@@ -137,17 +207,70 @@ function drupdown_get_url_patterns() {
   return $patterns;
 }
 
+/**
+ * Implements hook_drupdown_url_patterns().
+ */
 function drupdown_drupdown_url_patterns() {
   $patterns = array();
-  $patterns['/.*/'] = array(
-    'function' => 'drupdown_link_callback',
+
+  $patterns['link'] = array(
+    'pattern' => '/.*/',
+    'callback' => 'drupdown_link_callback',
     'weight' => 100,
-    'classes' => array('drupdown-link'),
   );
+
+  $patterns['images'] = array(
+    'pattern' => '/^(.*?)(\:\/\/?).*\.(png|jpg|jpeg|gif)$/i',
+    'callback' => 'drupdown_image_callback',
+    'weight' => 90,
+    'classes' => array('drupdown-image'),
+  );
+
+  $patterns['flickr'] = array(
+    'pattern' => '/flickr\.com\/photos\/(.*?)\/sets\/(.*?)\//',
+    'callback' => 'drupdown_flickr_gallery_callback',
+    'weight' => 90,
+    'classes' => array('drupdown-gallery drupdown-flickr-gallery'),
+  );
+
+  $patterns['picasa'] = array(
+    'pattern' => '/picasaweb\.google\.com\/(.+?)\/([^?&]+)/',
+    'callback' => 'drupdown_picasa_gallery_callback',
+    'weight' => 90,
+    'classes' => array('drupdown-picasa-gallery'),
+  );
+
+  $patterns['youtube'] = array(
+    'pattern' => '/(?:(?:youtube(?:.*?)[?&]v=)|(?:youtu\.be\/))([^&?]*)/',
+    'callback' => 'drupdown_youtube_callback',
+    'weight' => 90,
+    'classes' => array('drupdown-video', 'drupdown-youtube'),
+  );
+
+  $patterns['vimeo'] = array(
+    'pattern' => '/vimeo\.com\/([0-9]+)/',
+    'callback' => 'drupdown_vimeo_callback',
+    'weight' => 90,
+    'classes' => array('drupdown-vimeo', 'drupdown-video'),
+  );
+
+  $patterns['soundcloud'] = array(
+    'pattern' => '/soundcloud\.com\//',
+    'callback' => 'drupdown_soundcloud_callback',
+    'weight' => 90,
+    'classes' => array('drupdown-soundcloud'),
+  );
+
+  foreach (array_keys($patterns) as $key) {
+    $patterns[$key]['file'] = drupal_get_path('module', 'drupdown') . '/includes/drupdown.patterns.inc';
+  }
   return $patterns;
 }
 
 
+/**
+ * Implements hook_theme().
+ */
 function drupdown_theme() {
   return array(
     'figure' => array(
@@ -161,6 +284,9 @@ function drupdown_theme() {
   );
 }
 
+/**
+ * Theming function for inline figures.
+ */
 function theme_figure($variables) {
   $variables['classes'][] = 'drupdown-figure';
   $caption = FALSE;
@@ -168,9 +294,9 @@ function theme_figure($variables) {
     $caption = $variables['caption'];
     $variables['classes'][] = 'drupdown-captioned';
   }
-  $content = '<div class="drupdown-figure-wrapper drupdown-' . $variables['float'] . '">'
-    .'<div class="' . implode(' ', $variables['classes']) . '">'
-    .'<div class="drupdown-figure-content">' . $variables['content'] . '</div>';
+  $content = '<div class="drupdown-figure-wrapper">'
+    . '<div class="' . implode(' ', $variables['classes']) . '">'
+    . '<div class="drupdown-figure-content">' . $variables['content'] . '</div>';
   if ($caption) {
     $content .= '<div class="drupdown-caption">' . $caption . '</div>';
   }
@@ -178,10 +304,28 @@ function theme_figure($variables) {
   return $content;
 }
 
-function drupdown_link_callback($text, $url, $matches) {
-  return l($text, $url, array(
-    '#attributes' => array(
-      'title' => $text,
-    ),
-  ));
+
+/**
+ * Implements hook_element_info_alter().
+ */
+function drupdown_element_info_alter(&$types) {
+  $types['managed_file']['#process'][] = '_drupdown_file_element_process';
+}
+
+/**
+ * Element process callback for altering the file element.
+ */
+function _drupdown_file_element_process($element) {
+  if (array_key_exists('#file', $element) && is_object($element['#file'])) {
+    if (in_array('image_field_widget_process', $element['#process'])) {
+      $styles = array_keys(image_styles());
+      $styles[] = 'original';
+      $element['drupdown_embed'] = array(
+        '#type' => 'hidden',
+        '#value' => $element['#file']->uri,
+        '#attributes' => array('class' => array('drupdown-embed-uri')),
+      );
+    }
+  }
+  return $element;
 }

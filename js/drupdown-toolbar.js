@@ -52,34 +52,19 @@
       };
 
       this.prefixLines = function(sign) {
-        var i, lines, range, session, to, _ref;
-        session = this.editor.getSession();
-        range = this.editor.getSelectionRange();
-        lines = session.getLines(range.start.row, range.end.row);
-        to = lines[lines.length - 1].length;
-        for (i = 0, _ref = lines.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-          lines[i] = "" + sign + " " + lines[i];
+        var session = this.editor.getSession();
+        var range = this.editor.getSelectionRange();
+        var lines = session.getLines(range.start.row, range.end.row);
+        var to = lines[lines.length - 1].length;
+        var pref = sign;
+        for (var i = 0; i < lines.length; i++) {
+          if (sign === '.') {
+            pref = (i + 1) + sign;
+          }
+          lines[i] = "" + pref + " " + lines[i];
         }
         session.replace(new Range(range.start.row, 0, range.end.row, to), lines.join('\n'));
         return this.editor.clearSelection();
-      };
-
-      this.floatOptions = function() {
-        return $([
-        '<div class="drupdown-float-options">',
-          '<div class="column">',
-            '<label class="icon-float-left" for="left"><span>Left</span></label>',
-            '<input type="radio" name="position" id="left" value="<"/>',
-          '</div>',
-          '<div class="column">',
-            '<label class="icon-float-center" for="center"><span>Center</span></label>',
-            '<input type="radio" name="position" id="center" value="!" checked/>',
-          '</div>',
-          '<div class="column">',
-            '<label class="icon-float-right" for="right"><span>Right</span></label>',
-            '<input type="radio" name="position" id="right" value=">"/>',
-          '</div>',
-        '</div>'].join(''));
       };
 
       this.embedOptions = function(text) {
@@ -188,7 +173,7 @@
             class: 'ordered-list',
             description: Drupal.t('Create an ordered list.'),
             callback: function() {
-              that.prefixLines('+');
+              that.prefixLines('.');
             }
           }]
         });
@@ -199,9 +184,7 @@
           class: 'quote',
           description: Drupal.t('Mark text as quoted and choose a floating direction.'),
           callback: function() {
-            that.dialog(that.floatOptions(), function(values){
-              that.prefixLines(values['position']);
-            });
+            that.prefixLines('> ');
           }
         });
 
@@ -217,52 +200,6 @@
             $dialog.append(that.embedOptions(text));
             that.dialog($dialog, function(values){
               var link = "[" + values['text'] + "](" + values['uri'] + " \"" + values['title'] + "\")";
-              that.editor.getSession().replace(range, link);
-            });
-          }
-        });
-
-        // Images.
-        buttons.push({
-          title: Drupal.t('Image'),
-          class: 'image',
-          description: Drupal.t('Insert embedded media.'),
-          callback: function() {
-            var range = that.editor.getSelectionRange();
-            var text = that.editor.getSession().doc.getTextRange(range);
-            var $dialog = $('<div></div>')
-            $dialog.append(that.floatOptions());
-            $dialog.append(that.imageOptions());
-            that.dialog($dialog, function(values) {
-              var link = [
-                values['position'],
-                '[', text, ']',
-                '(',
-                  values['file'].replace(/^(.*\:\/\/)/, values['format'] + '://'),
-                ' "', text, '")'
-              ].join('');
-              that.editor.getSession().replace(range, link);
-            });
-          }
-        });
-
-        // Embeddables.
-        buttons.push({
-          title: Drupal.t('Media'),
-          class: 'media',
-          description: Drupal.t('Insert embedded media.'),
-          callback: function() {
-            var range = that.editor.getSelectionRange();
-            var text = that.editor.getSession().doc.getTextRange(range);
-            var $dialog = $('<div></div>')
-            $dialog.append(that.floatOptions());
-            $dialog.append(that.embedOptions(text));
-            that.dialog($dialog, function(values) {
-              var link = [
-                values['position'],
-                '[', values['text'], ']',
-                '(', values['uri'], ' "', values['title'], '")'
-              ].join('');
               that.editor.getSession().replace(range, link);
             });
           }
