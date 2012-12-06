@@ -43,6 +43,11 @@ function drupdown_settings_form($form, &$form_state) {
     '#type' => 'textfield',
     '#default_value' => variable_get('drupdown_flickr_api_key', ''),
   );
+  $form['drupdown_flickr_api_private_key'] = array(
+    '#title' => t('Flickr API Private Key'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('drupdown_flickr_api_private_key', ''),
+  );
   $form['drupdown_soundcloud_client_id'] = array(
     '#title' => t('Soundcloud Client ID'),
     '#type' => 'textfield',

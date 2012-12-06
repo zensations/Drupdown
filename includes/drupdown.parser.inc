@@ -89,6 +89,9 @@ class DrupdownParser extends MarkdownExtra_Parser {
 
   public function inlineEmbedsCallback($matches) {
     $info = drupdown_match_pattern($matches['url']);
+    if (!is_array($info['classes'])) {
+      $info['classes'] = array();
+    }
     $link = l($matches['alt'], $matches['url'], array(
       'html' => TRUE,
       'attributes' => array(

@@ -126,7 +126,7 @@ function drupdown_picasa_gallery_callback($text, $url, $matches) {
   ));
 }
 
-function drupdown_youtube_callback($text, $url, $settings, $matches) {
+function drupdown_youtube_callback($text, $url, $matches) {
   return '<iframe
     class="drupdown-youtube"
     src="https://www.youtube-nocookie.com/embed/' . $matches[1] . '"></iframe>';
