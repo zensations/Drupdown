@@ -8,7 +8,7 @@ function drupdown_link_callback($text, $url, $matches) {
   return '<iframe src="' . $url . '"></iframe>';
 }
 
-function drupdown_image_callback($text, $url, $matches) {
+function drupdown_image_callback($text, $url, $matches, &$classes) {
   $protocol = $matches[1];
   if ($protocol == 'original') {
     $protocol = 'public';
@@ -26,6 +26,8 @@ function drupdown_image_callback($text, $url, $matches) {
       if (!file_exists($style_path)) {
         image_style_create_derivative($image_styles[$protocol], $original_path, $style_path);
       }
+      $classes[] = 'drupdown-imagestyle-' . $protocol;
+      dpm($classes);
       $style_info = image_get_info($style_path);
       $original_info = image_get_info($original_path);
       $zoom = $style_info['width']*$style_info['height'] < ($original_info['width']*$original_info['height'])/1.3;

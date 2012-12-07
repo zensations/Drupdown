@@ -182,17 +182,22 @@ function drupdown_process_reference($text, $url, $title) {
   if (array_key_exists('file', $info)) {
     include_once $info['file'];
   }
-  $result = call_user_func_array($info['callback'], array(
-    $text, $url, $info['matches'],
-  ));
-  if (!is_array($info['classes'])) {
-    $info['classes'] = array();
+
+  $classes = $info['classes'];
+  if (!is_array($classes)) {
+    $classes = array();
   }
+  $classes[] = 'drupdown-' . $info['id'];
+
+  $result = call_user_func_array($info['callback'], array(
+    $text, $url, $info['matches'], &$classes,
+  ));
+
   if (strlen($result) > 0) {
     return theme('figure', array(
       'content' => $result,
       'caption' => $title,
-      'classes' => $info['classes'] + array('drupdown-' . $info['id']),
+      'classes' => $classes,
     ));
   }
   return '<em>Reference could not be processed.</em>';
@@ -299,8 +304,8 @@ function theme_figure($variables) {
     $caption = $variables['caption'];
     $variables['classes'][] = 'drupdown-captioned';
   }
-  $content = '<div class="drupdown-figure-wrapper">'
-    . '<div class="' . implode(' ', $variables['classes']) . '">'
+  $content = '<div class="drupdown-figure-wrapper ' . implode(' ', $variables['classes']) . '">'
+    . '<div class="drupdown-figure">'
     . '<div class="drupdown-figure-content">' . $variables['content'] . '</div>';
   if ($caption) {
     $content .= '<div class="drupdown-caption">' . $caption . '</div>';
