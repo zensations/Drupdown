@@ -27,7 +27,6 @@ function drupdown_image_callback($text, $url, $matches, &$classes) {
         image_style_create_derivative($image_styles[$protocol], $original_path, $style_path);
       }
       $classes[] = 'drupdown-imagestyle-' . $protocol;
-      dpm($classes);
       $style_info = image_get_info($style_path);
       $original_info = image_get_info($original_path);
       $zoom = $style_info['width']*$style_info['height'] < ($original_info['width']*$original_info['height'])/1.3;
@@ -54,6 +53,7 @@ function drupdown_image_callback($text, $url, $matches, &$classes) {
       ),
     ));
   }
+
   return $img;
 }
 
