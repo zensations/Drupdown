@@ -24,8 +24,15 @@
 }
 
 /* figure and caption */
-.drupdown-caption {
+.drupdown-caption {
   text-align: center;
+}
+
+ul.drupdown-group {
+  list-style-type: none;
+  list-style-image: none;
+  margin: 0;
+  padding: 0;
 }
 
 /* table directions */

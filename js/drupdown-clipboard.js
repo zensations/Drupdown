@@ -15,7 +15,6 @@
           $el.html(text);
         }, 3000);
       });
-      $(clip.htmlBridge).css('border', '1px dotted red');
     }
     clip.glue(element);
   }

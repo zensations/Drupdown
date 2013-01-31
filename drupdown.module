@@ -375,7 +375,7 @@ function _drupdown_file_element_process($element) {
             ),
           ));
         }
-        if (!$styles['original']) {
+        if (!@$styles['original']) {
           unset($element['drupdown_copy_links']['#items']['original']);
         }
       }
