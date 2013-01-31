@@ -89,8 +89,22 @@ class DrupdownParser extends MarkdownExtra_Parser {
 
   public function inlineEmbedsCallback($matches) {
     $info = drupdown_match_pattern($matches['url']);
+    $styles = array_keys(image_styles());
+    $scheme = file_uri_scheme($matches['url']);
+    if (in_array($scheme, $styles)) {
+      $matches['url'] = image_style_url($scheme, str_replace($scheme, 'public', $matches['url']));
+    }
+    elseif ($scheme == 'public') {
+      $matches['url'] = file_create_url($matches['url']);
+    }
+    if (file_uri_scheme($matches['url']) == 'public') {
+      $matches['url'] = file_create_url($matches['url']);
+    }
     if (!is_array(@$info['classes'])) {
       $info['classes'] = array();
+    }
+    if (preg_match('/[jpg|jpeg|png|bmp]$/', $matches['url'])) {
+      $info['classes'][] = 'drupdown-zoom';
     }
     $link = l($matches['alt'], $matches['url'], array(
       'html' => TRUE,
