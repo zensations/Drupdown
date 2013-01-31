@@ -36,7 +36,6 @@ function drupdown_menu() {
 /**
  * Drupdown settings form.
  */
-
 function drupdown_settings_form($form, &$form_state) {
   $form['drupdown_flickr_api_key'] = array(
     '#title' => t('Flickr API Key'),
@@ -53,6 +52,18 @@ function drupdown_settings_form($form, &$form_state) {
     '#type' => 'textfield',
     '#default_value' => variable_get('drupdown_soundcloud_client_id', ''),
   );
+
+  $form['drupdown_image_styles'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Available image styles'),
+    '#options' => array(
+      'original' => 'original',
+    ),
+    '#default_value' => variable_get('drupdown_image_styles', array()),
+  );
+  foreach (array_keys(image_styles()) as $style) {
+    $form['drupdown_image_styles']['#options'][$style] = $style;
+  }
   return system_settings_form($form);
 }
 
@@ -127,7 +138,7 @@ function drupdown_filter_info() {
     'title' => t('Drupdown'),
     'description' => t('Extended Markdown with Drupal flavor.'),
     'process callback' => '_drupdown_process',
-    'settings callback' => '_drupdown_settings',
+    //'settings callback' => '_drupdown_settings',
     'default settings' => array('styles' => array()),
   );
   return $filters;
@@ -327,14 +338,47 @@ function drupdown_element_info_alter(&$types) {
  */
 function _drupdown_file_element_process($element) {
   if (array_key_exists('#file', $element) && is_object($element['#file'])) {
-    if (in_array('image_field_widget_process', $element['#process'])) {
-      $styles = array_keys(image_styles());
-      $styles[] = 'original';
-      $element['drupdown_embed'] = array(
-        '#type' => 'hidden',
-        '#value' => $element['#file']->uri,
-        '#attributes' => array('class' => array('drupdown-embed-uri')),
+    $zeropath = libraries_get_path('ZeroClipboard');
+    if (file_exists($zeropath . '/ZeroClipboard.js')) {
+      $element['#attached']['css'][] = drupal_get_path('module', 'drupdown') . '/css/drupdown-clipboard.css';
+      $element['#attached']['js'][] = $zeropath . '/ZeroClipboard.js';
+      $element['#attached']['js'][] = drupal_get_path('module', 'drupdown') . '/js/drupdown-clipboard.js';
+      $element['#attached']['js'][] = array(
+        'data' => array(
+          'drupdown' => array(
+            'ZeroClipboardPath' => url($zeropath . '/ZeroClipboard.swf'),
+          ),
+        ),
+        'type' => 'setting',
       );
+    }
+    $element['drupdown_copy_links'] = array(
+      '#weight' => 20,
+      '#theme' => 'item_list',
+      '#items' => array(),
+      '#attributes' => array(
+        'class' => array('drupdown-copy-links'),
+      ),
+    );
+    $element['drupdown_copy_links']['#items']['original'] = l('original', file_create_url($element['#file']->uri), array(
+      'attributes' => array(
+        'data-clipboard-text' => $element['#file']->uri,
+      ),
+    ));
+    if (in_array('image_field_widget_process', $element['#process'])) {
+      $styles = variable_get('drupdown_image_styles', array());
+      foreach (array_keys(image_styles()) as $name) {
+        if (array_key_exists($name, $styles) && $styles[$name]) {
+          $element['drupdown_copy_links']['#items'][$name] = l($name, image_style_url($name, $element['#file']->uri), array(
+            'attributes' => array(
+              'data-clipboard-text' => str_replace('public', $name, $element['#file']->uri),
+            ),
+          ));
+        }
+        if (!$styles['original']) {
+          unset($element['drupdown_copy_links']['#items']['original']);
+        }
+      }
     }
   }
   return $element;

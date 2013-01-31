@@ -196,12 +196,15 @@
           callback: function() {
             var range = that.editor.getSelectionRange();
             var text = that.editor.getSession().doc.getTextRange(range);
-            var $dialog = $('<div title="' + (Drupal.t('Insert Link')) + ':">');
-            $dialog.append(that.embedOptions(text));
-            that.dialog($dialog, function(values){
-              var link = "[" + values['text'] + "](" + values['uri'] + " \"" + values['title'] + "\")";
-              that.editor.getSession().replace(range, link);
-            });
+            if (text.length === 0) {
+              text = Drupal.t('link text');
+            }
+            var url = 'http://myaddress.com';
+            if (Drupal.drupdown_clipboard_value) {
+              url = Drupal.drupdown_clipboard_value;
+            }
+            var link = "[" + text + "](" + url + " \"\")";
+            that.editor.getSession().replace(range, link);
           }
         });
         return buttons;

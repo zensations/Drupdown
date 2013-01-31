@@ -5,6 +5,9 @@
  */
 
 function drupdown_link_callback($text, $url, $matches) {
+  if (file_uri_scheme($url) == 'public') {
+    $url = file_create_url($url);
+  }
   return '<iframe src="' . $url . '"></iframe>';
 }
 
