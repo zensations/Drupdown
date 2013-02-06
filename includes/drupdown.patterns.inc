@@ -8,7 +8,7 @@ function drupdown_link_callback($text, $url, $matches) {
   if (file_uri_scheme($url) == 'public') {
     $url = file_create_url($url);
   }
-  return '<iframe src="' . $url . '"></iframe>';
+  return l($text, $url);
 }
 
 function drupdown_image_callback($text, $url, $matches, &$classes) {
