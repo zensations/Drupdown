@@ -1,0 +1,17 @@
+<?php
+/**
+ * @file
+ * Adds fancybox integration to drupdown.
+ */
+
+
+/**
+ * Implements hook_init().
+ */
+function drupdown_fancybox_init() {
+  $lib = libraries_get_path('fancybox');
+  drupal_add_js($lib . '/source/jquery.fancybox.js');
+  drupal_add_css($lib . '/source/jquery.fancybox.css');
+  $path = drupal_get_path('module', 'drupdown_fancybox');
+  drupal_add_js($path . '/drupdown_fancybox.js');
+}

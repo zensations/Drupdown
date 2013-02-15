@@ -1,0 +1,6 @@
+name = Drupdown Fancybox
+description = Fancybox integration for Drupdown embeds.
+package = "Drupdown"
+core = 7.x
+files[] = drupdown_fancybox.module
+dependencies[] = drupdown
