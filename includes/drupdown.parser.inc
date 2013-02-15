@@ -124,7 +124,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
     }
     $level = $matches[3][0] == '=' ? 2 : 3;
     $id =& $matches[2];
-    $attr  = $this->_doHeaders_attr($id);
+    $attr = $id ? ' id="' . $id . '"' : '';
     $block = "<h$level$attr>" . $this->runSpanGamut($matches[1]) . "</h$level>";
     return "\n" . $this->hashBlock($block) . "\n\n";
   }
@@ -135,7 +135,7 @@ class DrupdownParser extends MarkdownExtra_Parser {
   public function _doHeaders_callback_atx($matches) {
     $level = strlen($matches[1]) + 1;
     $id =& $matches[3];
-    $attr  = $this->_doHeaders_attr($id);
+    $attr = $id ? ' id="' . $id . '"' : '';
     $block = "<h$level$attr>" . $this->runSpanGamut($matches[2]) . "</h$level>";
     return "\n" . $this->hashBlock($block) . "\n\n";
   }
